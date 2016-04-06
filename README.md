@@ -15,4 +15,4 @@ TODO: Add explanation of how to make gain-shift files, including example files.
 
 
 ## The peakfinder script
-This is a script by Alexander Bürger that is very nice for determining the locations of peaks in 2D SiRi spectra. I have modified it slightly such that pressing "u" moves you to the next spectrum in line, while pressing "space" gives you another shot at the same spectrum. 
+peaks2D_JEMmod.C is a script by Alexander Bürger that is very nice for determining the locations of peaks in 2D SiRi spectra. I have modified it slightly such that pressing "u" moves you to the next spectrum in line, while pressing "space" gives you another shot at the same spectrum. 
