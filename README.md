@@ -8,10 +8,16 @@ This is an extensive library of Python functions for aligning and calibrating sp
 
 There are example scripts showing how to use them, with corresponding spectrum files.
 
-
-
-
-TODO: Add explanation of how to make gain-shift files, including example files.
+An example workflow could go something like this:
+* Sort data with plain gainshifts.
+* Do a coarse alignment of SiRi (EdE) spectra, getting relative gains and shifts (GS). Combine relative GS with previous GS. Resort data.
+* Look at the aligned spectra in ROOT. Apply TCut to interesting region(s). Resort data with TCuts applied (see user_sort.cpp).
+* Improve the SiRi alignment using only the interesting regions. Get relative GS, combine with previous, resort.
+* Add aligned spectra together to have good statistics on peaks. Fit two peaks in E and dE spectra. Determine physical values of the peaks, calibrate data. The function calibrate_2points() may be helpful. Make relative GS file, combine with previous, resort.
+* Start with the CACTUS (NaI) spectra. Align all spectra. Get relative GS, combine with previous, resort.
+* Sum spectra to get nice peaks. Fit peaks. Determine physical values, calculate gain and shift. Combine with previous, resort. 
+* Do time gating and coincidence stuff.
+* Proceed with $E_x-E_\gamma$ matrix.
 
 
 ## The peakfinder script
