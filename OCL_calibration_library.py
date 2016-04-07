@@ -17,6 +17,8 @@ def read_qkinz_single(isotope, reaction):
 	# ** THIS VERSION: Read only the relevant reaction entry (p, d, t) **
 
 	# Function which reads data from Qkinz. 
+	# The argument "isotope" should be a string specifying the target, e.g. "184W".
+	# The argument "reaction" should be one of the following strings: "p", "d", "t" (for proton, deuteron or triton)
 	# Qkinz is available at http://github.com/oslocyclotronlab
 	# The Qkinz output should be organized as a set of files named as follows:
 	# <isotope>_stripX.txt
