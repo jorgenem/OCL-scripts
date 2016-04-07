@@ -33,7 +33,7 @@ def read_qkinz_single(isotope, reaction):
 
 	list = [] # Allocate nested list to include all data
 	for i in range(8):
-		filename = "../../qkinz/%s_strip%d.txt" %(isotope, i)
+		filename = "qkinz/%s_strip%d.txt" %(isotope, i)
 		infile = open(filename, 'r')
 		lines = infile.readlines()
 		list_currentstrip = []
