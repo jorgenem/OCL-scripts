@@ -46,6 +46,8 @@ def read_and_project_ede_spectra(root_filename):
 			back_current[1,:] = x_range_back[0:-1]
 			back_current[2,:] = x_range_back[1:]
 			back_current[3,:] = np.array(file1.Get("m_e_de_b%df%d" %(i,j)).ProjectionX("myHist_b%d" %i))
+			# if i==0:
+			# 	back_current[3,:] /= 10
 			back.append(back_current)
 	return front, back
 
@@ -101,15 +103,15 @@ def read_nai_spectra(root_filename):
 
 def read_histogram(root_filename, histogram_object_name):
 	file1 = R.TFile.Open(root_filename)
-	xmin = nai_e_hist0.GetXaxis().GetXmin()
-	xmax = nai_e_hist0.GetXaxis().GetXmax()
-	Nbins = nai_e_hist0.GetSize()
+	xmin = file1.Get(histogram_object_name).GetXaxis().GetXmin()
+	xmax = file1.Get(histogram_object_name).GetXaxis().GetXmax()
+	Nbins = file1.Get(histogram_object_name).GetSize()
 	x_range = np.linspace(xmin, xmax, Nbins+1)
 	hist = np.zeros((4, Nbins))
 	hist[0,:] = np.linspace(1,Nbins,Nbins)
 	hist[1,:] = x_range[0:-1]
 	hist[2,:] = x_range[1:]
-	hist[3,:] = np.array(file1.Get("histogram_object_name"))
+	hist[3,:] = np.array(file1.Get(histogram_object_name))
 	return hist
 
 def read_qkinz_single(isotope, reaction):
