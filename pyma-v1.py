@@ -129,7 +129,7 @@ def first_generation_spectrum_test2(matrix, a, x_array, y_array, N_Exbins, Ex_ma
 	ExH = 7520.00000
 	ExEntry0s = 300.000000
 	ExEntry0t = 0.00000000
-	apply_area_correction = False
+	apply_area_correction = True
 
 
 	# Ex_max = 7500 # keV - maximum excitation energy
@@ -221,14 +221,14 @@ def first_generation_spectrum_test2(matrix, a, x_array, y_array, N_Exbins, Ex_ma
 	print area_grid.shape
 	multiplicity_grid = np.tile(multiplicity, (N_Exbins, 1)) 
 	print multiplicity_grid.shape
-	normalization_matrix = ( np.transpose(multiplicity_grid) * area_grid ) / (multiplicity_grid * np.transpose(area_grid) ).T # The transpose gives the right result. Haven't twisted my head around exactly why.
+	normalization_matrix = (( np.transpose(multiplicity_grid) * area_grid ) / (multiplicity_grid * np.transpose(area_grid) )).T # The transpose gives the right result. Haven't twisted my head around exactly why.
 	# normalization_matrix_check = np.zeros((N_Exbins, N_Exbins))
 	# for i in range(N_Exbins):
 	# 	for j in range(N_Exbins):
 	# 		normalization_matrix_check[i, j] = multiplicity[i]*area[j]/(multiplicity[j]*area[i])
 	normalization_matrix[np.isnan(normalization_matrix)] = 0
-	# plt.matshow(normalization_matrix, origin='lower', norm=LogNorm(vmin=0.01, vmax=normalization_matrix.max()))
-	# plt.show()
+	plt.matshow(normalization_matrix, origin='lower', norm=LogNorm(vmin=0.01, vmax=normalization_matrix.max()))
+	plt.show()
 	# plt.matshow(normalization_matrix_check, origin='lower') # There is a difference of a transposition, check which is the right one
 	# plt.show()
 
@@ -270,10 +270,10 @@ def first_generation_spectrum_test2(matrix, a, x_array, y_array, N_Exbins, Ex_ma
 	vmax_diff = 100
 
 	# Perform the iterative subtraction:
-	# for iteration in range(N_iterations):
-	convergence_criterion = 1e-8
-	max_diff = 1
-	while max_diff > convergence_criterion:
+	for iteration in range(N_iterations):
+	# convergence_criterion = 1
+	# max_diff = 100
+	# while max_diff > convergence_criterion:
 		# Store H from previous iteration to compare at the end
 		H_old = H
 		# Compress the H matrix along gamma axis to facilitate conversion to excitation energy
@@ -379,14 +379,15 @@ def first_generation_spectrum_test2(matrix, a, x_array, y_array, N_Exbins, Ex_ma
 		# plt.show()
 
 
-		# Remove negative counts
-		H[H<0] = 0
 
 		# Check convergence
 		max_diff = np.max(np.power(H-H_old,2))
+		print max_diff
 
-
-
+	
+	# Remove negative counts
+	H[H<0] = 0
+	# Return
 	return H, H-H_old, Egamma_range, Ex_range
 
 
@@ -418,60 +419,65 @@ def div0( a, b ):
 
 # ==== Run program ====
 
-# # Read MAMA matrix
-# # filename = "alfna-unfolded-20160518.m"
-# filename = "/home/jorgenem/Dropbox/PhD/184W-eksperiment/analysis_187Re/unfolding/alfna-attempted_removing_1p2MeV_Al-20160518.m"
-# matrix, a, x_array, y_array = read_mama(filename)
-# Ex_max = 7500 # keV - maximum excitation energy
-# # Ex_min = 300 # keV - minimal excitation energy, effectively moving the ground-state energy up because we cannot resolve the low-energy yrast gamma lines. This is weighed up by also using an effective multiplicity which is lower than the real one, again not considering the low-energy yrast gammas.
-# dE_gamma = 300 # keV - allow gamma energy to exceed excitation energy by this much, to account for experimental resolution
-# N_Exbins = np.sum(np.logical_and(0 < y_array, y_array < Ex_max + dE_gamma)) # Same number of bins as original matrix
-# # N_Exbins = 180
-# firstgen_matrix, diff_matrix, Egamma_range, Ex_range = first_generation_spectrum_test2(matrix, a, x_array, y_array, N_Exbins, Ex_max, dE_gamma, N_iterations=80)
+# Read MAMA matrix
+# filename = "alfna-unfolded-20160518.m"
+filename = "/home/jorgenem/Dropbox/PhD/184W-eksperiment/analysis_187Re/unfolding/alfna-attempted_removing_1p2MeV_Al-20160518.m"
+matrix, a, x_array, y_array = read_mama(filename)
+print a
+Ex_max = 7500 # keV - maximum excitation energy
+# Ex_min = 300 # keV - minimal excitation energy, effectively moving the ground-state energy up because we cannot resolve the low-energy yrast gamma lines. This is weighed up by also using an effective multiplicity which is lower than the real one, again not considering the low-energy yrast gammas.
+dE_gamma = 300 # keV - allow gamma energy to exceed excitation energy by this much, to account for experimental resolution
+N_Exbins = np.sum(np.logical_and(0 < y_array, y_array < Ex_max + dE_gamma)) # Same number of bins as original matrix
+N_Exbins = 180
+firstgen_matrix, diff_matrix, Egamma_range, Ex_range = first_generation_spectrum_test2(matrix, a, x_array, y_array, N_Exbins, Ex_max, dE_gamma, N_iterations=8)
 
 # # print matrix.shape
 
-# # Plot matrix
-# plt.figure(0)
-# plt.subplot(1,2,1)
-# # matrix[matrix < 1] = 0 # I do this to get the colors nice. Should check that it doesn't remove any wanted points, but a fractional count does sound strange (although this is after unfolding)
-# plt.pcolormesh(x_array, y_array, matrix, norm=LogNorm(vmin=0.001, vmax=max(matrix.max(), firstgen_matrix.max())), cmap='gist_rainbow_r')
-# # plt.matshow(matrix)
-# # plt.pcolormesh(matrix, norm=LogNorm(vmin=0.1, vmax=matrix.max()), cmap='gist_rainbow_r')
-# # plt.colorbar()
-# plt.xlabel('$E_\gamma$ [keV]', fontsize=14)
-# plt.ylabel('$E_x [keV]$', fontsize=14)
-# # plt.ylim([0,12])
-# # plt.xlim([0,12])
-# # plt.show()
-# # sys.exit(0)
-# # END plot matrix
-
-
-
-# plt.subplot(1,2,2)
-# plt.pcolormesh(Egamma_range, Ex_range, firstgen_matrix, norm=LogNorm(vmin=0.001, vmax=max(matrix.max(), firstgen_matrix.max())), cmap='gist_rainbow_r')
-# plt.ylim([0,max(y_array)])
+# Plot matrix
+plt.figure(0)
+plt.subplot(1,2,1)
+# matrix[matrix < 1] = 0 # I do this to get the colors nice. Should check that it doesn't remove any wanted points, but a fractional count does sound strange (although this is after unfolding)
+plt.pcolormesh(x_array, y_array, matrix, norm=LogNorm(vmin=0.001, vmax=max(matrix.max(), firstgen_matrix.max())), cmap='gist_rainbow_r')
+# plt.matshow(matrix)
+# plt.pcolormesh(matrix, norm=LogNorm(vmin=0.1, vmax=matrix.max()), cmap='gist_rainbow_r')
 # plt.colorbar()
-# plt.xlabel('$E_\gamma$ [keV]', fontsize=14)
-# plt.ylabel('$E_x [keV]$', fontsize=14)
-
+plt.xlabel('$E_\gamma$ [keV]', fontsize=14)
+plt.ylabel('$E_x [keV]$', fontsize=14)
+# plt.ylim([0,12])
+# plt.xlim([0,12])
 # plt.show()
+# sys.exit(0)
+# END plot matrix
+
+
+
+plt.subplot(1,2,2)
+plt.pcolormesh(Egamma_range, Ex_range, firstgen_matrix, norm=LogNorm(vmin=0.001, vmax=max(matrix.max(), firstgen_matrix.max())), cmap='gist_rainbow_r')
+plt.ylim([0,max(y_array)])
+plt.colorbar()
+plt.xlabel('$E_\gamma$ [keV]', fontsize=14)
+plt.ylabel('$E_x [keV]$', fontsize=14)
+
+plt.show()
 
 
 # # Test writing to file:
-# filename_out = "firstgen_test1.m"
+filename_out = "firstgen_test1.m"
 # # write_mama(matrix, filename_out, x_array, y_array)
-# write_mama(firstgen_matrix, filename_out, Egamma_range, Ex_range)
+write_mama(firstgen_matrix, filename_out, Egamma_range, Ex_range)
 # # print matrix[50:60,50:60]
 
 
+sys.exit(0)
+
 
 # Test rhosigchi fitting:
-filename_fg = "firstgen_test1.m"
+# filename_fg = "firstgen_test1.m"
+filename_fg = "test.m"
 fgmat, a, x_array, y_array = read_mama(filename_fg)
+fgmat[fgmat < 0] = 0
 
-# # Plot to check
+# Plot to check
 # plt.pcolormesh(x_array, y_array, fgmat, norm=LogNorm(vmin=0.001, vmax=fgmat.max()), cmap='gist_rainbow_r')
 # # plt.matshow(matrix)
 # # plt.pcolormesh(matrix, norm=LogNorm(vmin=0.1, vmax=matrix.max()), cmap='gist_rainbow_r')
@@ -482,27 +488,81 @@ fgmat, a, x_array, y_array = read_mama(filename_fg)
 # # plt.xlim([0,12])
 # plt.show()
 
-# plt.figure(15)
-fgmat_cut = fgmat[120:185, 18:]
-fgmat_cut = np.flipud(fgmat_cut)
-plt.matshow(fgmat_cut)
+# sys.exit(0)
+
+print a
+# print x_array, y_array
+
+# Egamma_mesh, Ex_mesh = np.meshgrid(x_array, y_array)
+
+plt.figure(0)
+plt.subplot(2,2,1)
+print np.where(x_array > y_array[-1])
+int_Egamma_padding = int(900 / a[1])
+print int_Egamma_padding
+index_Egamma_max = np.where(x_array>y_array[-1])[0][0]
+fgmat_squared = fgmat[:,0:(index_Egamma_max+int_Egamma_padding)]
+int_Ex_padding = int(900 / a[3])
+print np.zeros((int_Ex_padding, fgmat_squared.shape[1])).shape
+print fgmat_squared.shape
+fgmat_squared = np.append(np.zeros((int_Ex_padding, fgmat_squared.shape[1])), fgmat_squared, axis=0) # Pad with zeros below zero in Ex
+fgmat_squared = np.append(fgmat_squared, np.zeros((int_Ex_padding, fgmat_squared.shape[1])), axis=0) # Pad with zeros above Exmax in Ex
+fgmat_squared = np.append(np.zeros((fgmat_squared.shape[0], int_Egamma_padding)), fgmat_squared, axis=1) # Pad with zeros below zero in Egamma
+fgmat_squared = rebin(fgmat_squared, fgmat_squared.shape[0], rebin_axis=1)
+# fgmat_cut = np.flipud(fgmat_cut)
+plt.pcolormesh(fgmat_squared)
+
+plt.subplot(2,2,2)
+Ex_array_squared = np.linspace(y_array[0]-int_Ex_padding*a[3], y_array[-1] + int_Ex_padding*a[3], fgmat_squared.shape[0])
+Egamma_array_squared = np.linspace(x_array[0]-int_Egamma_padding*a[1], x_array[index_Egamma_max], fgmat_squared.shape[1])
+Egammamesh, Exmesh = np.meshgrid(Egamma_array_squared, Ex_array_squared)
+fgmat_cut = np.where(np.logical_and(Exmesh > 3000, np.logical_and(Exmesh < 7500, Egammamesh > 1200)), fgmat_squared, 0)
+plt.pcolormesh(fgmat_cut)
+
+plt.subplot(2,2,3)
+# fgmat_flipud = np.flipud(fgmat_cut)
+fgmat_EiEgamma = np.zeros(fgmat_cut.shape)
+for i in range(fgmat_cut.shape[0]):
+	fgmat_EiEgamma[i,0:fgmat_cut.shape[0]-i] = fgmat_cut.diagonal(-i)
+# fgmat_EiEgamma = np.flipud(fgmat_EiEgamma)
+# print "fgmat.sum(axis=1)"
+# print fgmat.sum(axis=1)
+plt.pcolormesh(fgmat_EiEgamma)
+
+plt.subplot(2,2,4)
+# Normalize
+fgmat_EiEgamma = div0(fgmat_EiEgamma, fgmat_EiEgamma.sum(axis=1).reshape(fgmat_EiEgamma.shape[0],1))
+plt.pcolormesh(fgmat_EiEgamma)
+
+
+
 plt.show()
 
+
+# sys.exit(0)
+
+N = 100
+fgmat_EiEgamma_cut = fgmat_EiEgamma[0:150,55:205]
+plt.matshow(fgmat_EiEgamma_cut)
+fg_exp = rebin(rebin(fgmat_EiEgamma_cut, N, rebin_axis=0), N, rebin_axis = 1)
+# Normalize fg_exp for each Ex bin
+# fg_exp = div0(fg_exp , fg_exp.sum(axis=1))
 
 def error(x):
 	N = int(len(x)/2)
 	T = x[0:N]
 	rho = x[N:2*N]
-	T2D, rho2D = np.meshgrid(T, rho)
+	T2D, rho2D = np.meshgrid(T, rho, indexing='ij')
 	fg_fit = T2D*rho2D
-	fg_exp = rebin(rebin(fgmat_cut, N, rebin_axis=0), N, rebin_axis = 1)
 	return np.sum(np.power(fg_fit-fg_exp, 2))
 
 from scipy.optimize import minimize
-N = 40
 rho0 = np.ones(N)
-T0 = np.linspace(0,1,N)
+# T0 = np.linspace(0,1,N)
+T0 = rebin(fgmat_EiEgamma.mean(axis=0), N, rebin_axis=0)
 x = np.append(T0, rho0)
+plt.plot(T0)
+plt.show()
 print x
 print error(x)
 
@@ -514,9 +574,13 @@ print T_fit, rho_fit
 
 plt.figure(20)
 plt.subplot(2,1,1)
-plt.plot(T_fit)
+Egamma_plot_range = np.linspace(1200, 8400, N)
+Ex_plot_range = np.linspace(0, 7500, N)
+alpha = 0.0018
+plt.plot(Egamma_plot_range, T_fit/Egamma_plot_range**3 * np.exp(alpha*Egamma_plot_range), 'o')
+plt.yscale('log')
 plt.subplot(2,1,2)
-plt.plot(rho_fit)
+plt.plot(Ex_plot_range, rho_fit*np.exp(alpha*Ex_plot_range), 'o')
 plt.yscale('log')
 plt.show()
 
