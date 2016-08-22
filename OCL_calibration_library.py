@@ -133,10 +133,18 @@ def read_qkinz_single(isotope, reaction):
 
 
 	list = [] # Allocate nested list to include all data
+	import os
+	cwd = os.getcwd() # Get path to current working dir
 	for i in range(8):
-		filename = "qkinz/%s_strip%d.txt" %(isotope, i)
-		infile = open(filename, 'r')
+		filename = cwd+"/qkinz/%s_strip%d.txt" %(isotope, i)
+		print filename
+		try:
+			infile = open(filename, 'r')
+		except:
+			print "read_qkinz_single(): Cannot open file "+filename
+
 		lines = infile.readlines()
+		# print lines
 		list_currentstrip = []
 		j = 0
 		if reaction == "p":
@@ -147,12 +155,13 @@ def read_qkinz_single(isotope, reaction):
 			reactionnumber = 2
 		else:
 			print "read_qkinz: Error in reaction number"
-			sys.exit(1)
+			# sys.exit(1)
 		readlines_on = False
 		firstline = 0
 		reactionnumber_counter = 0
 		while j < len(lines):
 			words = lines[j].split()
+			# print words
 			try:
 				if str(words[0]) == "Number_of_entries:":
 					if reactionnumber == reactionnumber_counter:
