@@ -419,59 +419,72 @@ def div0( a, b ):
 
 # ==== Run program ====
 
-# Read MAMA matrix
-# filename = "alfna-unfolded-20160518.m"
-filename = "/home/jorgenem/Dropbox/PhD/184W-eksperiment/analysis_187Re/unfolding/alfna-attempted_removing_1p2MeV_Al-20160518.m"
-matrix, a, x_array, y_array = read_mama(filename)
-print a
-Ex_max = 7500 # keV - maximum excitation energy
-# Ex_min = 300 # keV - minimal excitation energy, effectively moving the ground-state energy up because we cannot resolve the low-energy yrast gamma lines. This is weighed up by also using an effective multiplicity which is lower than the real one, again not considering the low-energy yrast gammas.
-dE_gamma = 300 # keV - allow gamma energy to exceed excitation energy by this much, to account for experimental resolution
-N_Exbins = np.sum(np.logical_and(0 < y_array, y_array < Ex_max + dE_gamma)) # Same number of bins as original matrix
-N_Exbins = 180
-firstgen_matrix, diff_matrix, Egamma_range, Ex_range = first_generation_spectrum_test2(matrix, a, x_array, y_array, N_Exbins, Ex_max, dE_gamma, N_iterations=8)
+# # Read MAMA matrix
+# # filename = "alfna-unfolded-20160518.m"
+# filename = "/home/jorgenem/Dropbox/PhD/184W-eksperiment/analysis_187Re/unfolding/alfna-attempted_removing_1p2MeV_Al-20160518.m"
+# matrix, a, x_array, y_array = read_mama(filename)
+# print a
+# Ex_max = 7500 # keV - maximum excitation energy
+# # Ex_min = 300 # keV - minimal excitation energy, effectively moving the ground-state energy up because we cannot resolve the low-energy yrast gamma lines. This is weighed up by also using an effective multiplicity which is lower than the real one, again not considering the low-energy yrast gammas.
+# dE_gamma = 300 # keV - allow gamma energy to exceed excitation energy by this much, to account for experimental resolution
+# N_Exbins = np.sum(np.logical_and(0 < y_array, y_array < Ex_max + dE_gamma)) # Same number of bins as original matrix
+# # N_Exbins = 200
 
-# # print matrix.shape
+# # #####################################################################################
+# # TODO firstgen: 
+# # - Why doesn't the convergence criterion work? Does the steady-state oscillate?
+# # #####################################################################################
 
-# Plot matrix
-plt.figure(0)
-plt.subplot(1,2,1)
-# matrix[matrix < 1] = 0 # I do this to get the colors nice. Should check that it doesn't remove any wanted points, but a fractional count does sound strange (although this is after unfolding)
-plt.pcolormesh(x_array, y_array, matrix, norm=LogNorm(vmin=0.001, vmax=max(matrix.max(), firstgen_matrix.max())), cmap='gist_rainbow_r')
-# plt.matshow(matrix)
-# plt.pcolormesh(matrix, norm=LogNorm(vmin=0.1, vmax=matrix.max()), cmap='gist_rainbow_r')
+# firstgen_matrix, diff_matrix, Egamma_range, Ex_range = first_generation_spectrum_test2(matrix, a, x_array, y_array, N_Exbins, Ex_max, dE_gamma, N_iterations=10)
+
+# # # print matrix.shape
+
+# # Plot matrix
+# plt.figure(0)
+# plt.subplot(1,2,1)
+# # matrix[matrix < 1] = 0 # I do this to get the colors nice. Should check that it doesn't remove any wanted points, but a fractional count does sound strange (although this is after unfolding)
+# plt.pcolormesh(x_array, y_array, matrix, norm=LogNorm(vmin=0.001, vmax=max(matrix.max(), firstgen_matrix.max())), cmap='gist_rainbow_r')
+# # plt.matshow(matrix)
+# # plt.pcolormesh(matrix, norm=LogNorm(vmin=0.1, vmax=matrix.max()), cmap='gist_rainbow_r')
+# # plt.colorbar()
+# plt.xlabel('$E_\gamma$ [keV]', fontsize=14)
+# plt.ylabel('$E_x [keV]$', fontsize=14)
+# # plt.ylim([0,12])
+# # plt.xlim([0,12])
+# # plt.show()
+# # sys.exit(0)
+# # END plot matrix
+
+
+
+# plt.subplot(1,2,2)
+# plt.pcolormesh(Egamma_range, Ex_range, firstgen_matrix, norm=LogNorm(vmin=0.001, vmax=max(matrix.max(), firstgen_matrix.max())), cmap='gist_rainbow_r')
+# plt.ylim([0,max(y_array)])
 # plt.colorbar()
-plt.xlabel('$E_\gamma$ [keV]', fontsize=14)
-plt.ylabel('$E_x [keV]$', fontsize=14)
-# plt.ylim([0,12])
-# plt.xlim([0,12])
+# plt.xlabel('$E_\gamma$ [keV]', fontsize=14)
+# plt.ylabel('$E_x [keV]$', fontsize=14)
+
 # plt.show()
+
+
+# # # Test writing to file:
+# filename_out = "firstgen_test1.m"
+# # # write_mama(matrix, filename_out, x_array, y_array)
+# write_mama(firstgen_matrix, filename_out, Egamma_range, Ex_range)
+# # # print matrix[50:60,50:60]
+
+
 # sys.exit(0)
-# END plot matrix
 
 
 
-plt.subplot(1,2,2)
-plt.pcolormesh(Egamma_range, Ex_range, firstgen_matrix, norm=LogNorm(vmin=0.001, vmax=max(matrix.max(), firstgen_matrix.max())), cmap='gist_rainbow_r')
-plt.ylim([0,max(y_array)])
-plt.colorbar()
-plt.xlabel('$E_\gamma$ [keV]', fontsize=14)
-plt.ylabel('$E_x [keV]$', fontsize=14)
-
-plt.show()
 
 
-# # Test writing to file:
-filename_out = "firstgen_test1.m"
-# # write_mama(matrix, filename_out, x_array, y_array)
-write_mama(firstgen_matrix, filename_out, Egamma_range, Ex_range)
-# # print matrix[50:60,50:60]
 
-
-sys.exit(0)
-
-
+##########################################################################
 # Test rhosigchi fitting:
+##########################################################################
+
 # filename_fg = "firstgen_test1.m"
 filename_fg = "test.m"
 fgmat, a, x_array, y_array = read_mama(filename_fg)
@@ -541,9 +554,9 @@ plt.show()
 
 # sys.exit(0)
 
-N = 100
+N = 50
 fgmat_EiEgamma_cut = fgmat_EiEgamma[0:150,55:205]
-plt.matshow(fgmat_EiEgamma_cut)
+# plt.matshow(fgmat_EiEgamma_cut)
 fg_exp = rebin(rebin(fgmat_EiEgamma_cut, N, rebin_axis=0), N, rebin_axis = 1)
 # Normalize fg_exp for each Ex bin
 # fg_exp = div0(fg_exp , fg_exp.sum(axis=1))
@@ -552,7 +565,7 @@ def error(x):
 	N = int(len(x)/2)
 	T = x[0:N]
 	rho = x[N:2*N]
-	T2D, rho2D = np.meshgrid(T, rho, indexing='ij')
+	T2D, rho2D = np.meshgrid(T, rho, indexing='xy')
 	fg_fit = T2D*rho2D
 	return np.sum(np.power(fg_fit-fg_exp, 2))
 
@@ -561,8 +574,16 @@ rho0 = np.ones(N)
 # T0 = np.linspace(0,1,N)
 T0 = rebin(fgmat_EiEgamma.mean(axis=0), N, rebin_axis=0)
 x = np.append(T0, rho0)
-plt.plot(T0)
-plt.show()
+
+T = x[0:N]
+rho = x[N:2*N]
+T2D, rho2D = np.meshgrid(T, rho, indexing='xy')
+print "T2D"
+plt.matshow(T2D)
+print "rho2D"
+print rho2D
+# plt.plot(T0)
+# plt.show()
 print x
 print error(x)
 
