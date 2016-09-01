@@ -16,7 +16,7 @@ def read_mama(filename):
 	a = [float(calibration_line[2][:-1]), float(calibration_line[3][:-1]), float(calibration_line[5][:-1]), float(calibration_line[6][:-1])]
 	Nx = len(matrix[0,:])
 	Ny = len(matrix[:,0])
-	print Nx, Ny
+	# print Nx, Ny
 	x_array = np.linspace(a[0], a[0]+a[1]*(Nx+1), Nx+1)
 	y_array = np.linspace(a[2], a[2]+a[3]*(Ny+1), Ny+1)
 	return matrix, a, x_array, y_array
@@ -114,6 +114,9 @@ def slide(Ex, Thres1, Thres2, ThresRatio):
 
 
 #first_generation_spectrum(matrix, a, N_iterations=20)
+
+def unfold(matrix, a, x_array, y_array, resp_filename):
+	return 0
 
 
 def first_generation_spectrum_test2(matrix, a, x_array, y_array, N_Exbins, Ex_max, dE_gamma, N_iterations=1):
@@ -227,8 +230,8 @@ def first_generation_spectrum_test2(matrix, a, x_array, y_array, N_Exbins, Ex_ma
 	# 	for j in range(N_Exbins):
 	# 		normalization_matrix_check[i, j] = multiplicity[i]*area[j]/(multiplicity[j]*area[i])
 	normalization_matrix[np.isnan(normalization_matrix)] = 0
-	plt.matshow(normalization_matrix, origin='lower', norm=LogNorm(vmin=0.01, vmax=normalization_matrix.max()))
-	plt.show()
+	# plt.matshow(normalization_matrix, origin='lower', norm=LogNorm(vmin=0.01, vmax=normalization_matrix.max()))
+	# plt.show()
 	# plt.matshow(normalization_matrix_check, origin='lower') # There is a difference of a transposition, check which is the right one
 	# plt.show()
 
@@ -481,6 +484,60 @@ def div0( a, b ):
 
 
 
+
+##########################################################################
+# Test statistical error propagation
+##########################################################################
+# Read MAMA matrix
+# filename = "alfna-unfolded-20160518.m"
+filename = "/home/jorgenem/Dropbox/PhD/184W-eksperiment/analysis_187Re/unfolding/alfna-attempted_removing_1p2MeV_Al-20160518.m"
+matrix, a, x_array, y_array = read_mama(filename)
+Ex_max = 7500 # keV - maximum excitation energy
+# Ex_min = 300 # keV - minimal excitation energy, effectively moving the ground-state energy up because we cannot resolve the low-energy yrast gamma lines. This is weighed up by also using an effective multiplicity which is lower than the real one, again not considering the low-energy yrast gammas.
+dE_gamma = 300 # keV - allow gamma energy to exceed excitation energy by this much, to account for experimental resolution
+N_Exbins = np.sum(np.logical_and(0 < y_array, y_array < Ex_max + dE_gamma)) # Same number of bins as original matrix
+
+# Get first generation spectrum of exact raw matrix
+firstgen_matrix, diff_matrix, Egamma_range, Ex_range = first_generation_spectrum_test2(matrix, a, x_array, y_array, N_Exbins, Ex_max, dE_gamma, N_iterations=10)
+
+# Get shape of matrices
+matrix_shape = matrix.shape
+firstgen_shape = firstgen_matrix.shape
+
+
+
+# Make poisson random fluctuations
+N = matrix.mean()
+print N
+plt.matshow(matrix, origin='lower')
+plt.colorbar()
+# plt.show()
+
+N_stat = 10
+print np.append(matrix_shape,N_stat)
+matrix_ensemble = np.empty(np.append(matrix_shape,N_stat))
+firstgen_ensemble = np.empty(np.append(firstgen_shape,N_stat))
+for i in range(N_stat):
+	# TODO: Make the gaussian variance vary as a function of matrix pixel count
+	matrix_ensemble[:,:,i] = np.maximum(matrix + np.random.normal(0, np.sqrt(N), matrix_shape), 0)
+	firstgen_ensemble[:,:,i], diff_matrix, Egamma_range, Ex_range = first_generation_spectrum_test2(matrix_ensemble[:,:,i], a, x_array, y_array, N_Exbins, Ex_max, dE_gamma, N_iterations=10)
+	# firstgen_matrix, diff_matrix, Egamma_range, Ex_range = first_generation_spectrum_test2(matrix, a, x_array, y_array, N_Exbins, Ex_max, dE_gamma, N_iterations=10)
+	print "check"
+
+plt.matshow(matrix_ensemble.var(axis=2), origin='lower')
+plt.colorbar()
+
+
+plt.show()
+
+
+
+sys.exit(0)
+
+
+
+
+
 ##########################################################################
 # Test rhosigchi fitting:
 ##########################################################################
@@ -507,6 +564,9 @@ print a
 # print x_array, y_array
 
 # Egamma_mesh, Ex_mesh = np.meshgrid(x_array, y_array)
+Ex_high = 8000
+Ex_low = 4000
+Egamma_low = 1000
 
 plt.figure(0)
 plt.subplot(2,2,1)
@@ -529,10 +589,15 @@ plt.subplot(2,2,2)
 Ex_array_squared = np.linspace(y_array[0]-int_Ex_padding*a[3], y_array[-1] + int_Ex_padding*a[3], fgmat_squared.shape[0])
 Egamma_array_squared = np.linspace(x_array[0]-int_Egamma_padding*a[1], x_array[index_Egamma_max], fgmat_squared.shape[1])
 Egammamesh, Exmesh = np.meshgrid(Egamma_array_squared, Ex_array_squared)
-fgmat_cut = np.where(np.logical_and(Exmesh > 3000, np.logical_and(Exmesh < 7500, Egammamesh > 1200)), fgmat_squared, 0)
+fgmat_cut = np.where(np.logical_and(Exmesh > Ex_low, np.logical_and(Exmesh < Ex_high, Egammamesh > Egamma_low)), fgmat_squared, 0)
 plt.pcolormesh(fgmat_cut)
 
 plt.subplot(2,2,3)
+# Normalize (for each Ei bin, which is right)
+fgmat_cut = div0(fgmat_cut, fgmat_cut.sum(axis=1).reshape(fgmat_cut.shape[0],1))
+plt.pcolormesh(fgmat_cut)
+
+plt.subplot(2,2,4)
 # fgmat_flipud = np.flipud(fgmat_cut)
 fgmat_EiEgamma = np.zeros(fgmat_cut.shape)
 for i in range(fgmat_cut.shape[0]):
@@ -542,10 +607,10 @@ for i in range(fgmat_cut.shape[0]):
 # print fgmat.sum(axis=1)
 plt.pcolormesh(fgmat_EiEgamma)
 
-plt.subplot(2,2,4)
-# Normalize
-fgmat_EiEgamma = div0(fgmat_EiEgamma, fgmat_EiEgamma.sum(axis=1).reshape(fgmat_EiEgamma.shape[0],1))
-plt.pcolormesh(fgmat_EiEgamma)
+# plt.subplot(2,2,4)
+# # Normalize
+# fgmat_EiEgamma = div0(fgmat_EiEgamma, fgmat_EiEgamma.sum(axis=1).reshape(fgmat_EiEgamma.shape[0],1))
+# plt.pcolormesh(fgmat_EiEgamma)
 
 
 
@@ -554,7 +619,7 @@ plt.show()
 
 # sys.exit(0)
 
-N = 50
+N = 100
 fgmat_EiEgamma_cut = fgmat_EiEgamma[0:150,55:205]
 # plt.matshow(fgmat_EiEgamma_cut)
 fg_exp = rebin(rebin(fgmat_EiEgamma_cut, N, rebin_axis=0), N, rebin_axis = 1)
@@ -578,10 +643,10 @@ x = np.append(T0, rho0)
 T = x[0:N]
 rho = x[N:2*N]
 T2D, rho2D = np.meshgrid(T, rho, indexing='xy')
-print "T2D"
-plt.matshow(T2D)
-print "rho2D"
-print rho2D
+# print "T2D"
+# plt.matshow(T2D)
+# print "rho2D"
+# print rho2D
 # plt.plot(T0)
 # plt.show()
 print x
@@ -598,10 +663,12 @@ plt.subplot(2,1,1)
 Egamma_plot_range = np.linspace(1200, 8400, N)
 Ex_plot_range = np.linspace(0, 7500, N)
 alpha = 0.0018
+# alpha = 0
 plt.plot(Egamma_plot_range, T_fit/Egamma_plot_range**3 * np.exp(alpha*Egamma_plot_range), 'o')
+# plt.plot(Egamma_plot_range, T_fit, 'o')
 plt.yscale('log')
 plt.subplot(2,1,2)
-plt.plot(Ex_plot_range, rho_fit*np.exp(alpha*Ex_plot_range), 'o')
+plt.plot(Ex_plot_range, rho_fit* np.exp(alpha*Ex_plot_range), 'o')
 plt.yscale('log')
 plt.show()
 
