@@ -77,12 +77,21 @@ dE_gamma = 300 # keV - allow gamma energy to exceed excitation energy by this mu
 # print "N_Exbins =", N_Exbins
 N_Exbins = 100
 
+plt.figure(0)
+plt.subplot(2,1,1)
+plt.pcolormesh(Egamma_range_matrix, Ex_range_matrix, matrix, norm=LogNorm(vmin=0.1, vmax=1e4))
+
 # Get first generation spectrum of exact raw matrix
 firstgen_matrix, diff_matrix, Egamma_range_fg, Ex_range_fg = first_generation_spectrum_test2(matrix, Egamma_range_matrix, Ex_range_matrix, N_Exbins, Ex_max, dE_gamma, N_iterations=20)
 # firstgen_matrix, a_fg, x_fg, y_fg = read_mama('firstgen_test.m')
 # firstgen_matrix, a_fg, x_fg, y_fg = read_mama('firstgen2.tmp')
 # print x_fg
 # print y_fg
+plt.subplot(2,1,2)
+plt.pcolormesh(Egamma_range_fg, Ex_range_fg, firstgen_matrix, norm=LogNorm(vmin=0.1, vmax=1e4))
+plt.show()
+
+sys.exit(0)
 
 # Get shape of matrices
 matrix_shape = matrix.shape
