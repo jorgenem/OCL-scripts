@@ -91,7 +91,7 @@ plt.subplot(2,1,2)
 plt.pcolormesh(Egamma_range_fg, Ex_range_fg, firstgen_matrix, norm=LogNorm(vmin=0.1, vmax=1e4))
 plt.show()
 
-sys.exit(0)
+# sys.exit(0)
 
 # Get shape of matrices
 matrix_shape = matrix.shape
@@ -120,11 +120,11 @@ matrix_ensemble = np.empty(np.append(matrix_shape,N_stat))
 firstgen_ensemble = np.empty(np.append(firstgen_shape,N_stat))
 
 # For rhosigchi testing: import previously made fgvar from file
-fgvar, a_fgvar, x_fgvar, y_fgvar = read_mama('fgvar_test-Nstat1000-Nexbins100.m')
+fgvar, a_fgvar, x_fgvar, y_fgvar = read_mama('fgvar_test-20160916-Nstat1000-Nexbins100-corrected_calibration.m')
 # print "fgvar.shape = ", fgvar.shape
 
 # Test rhosigchi using unperturbed FG matrix, importing fgvar from file to use in chisquare denominator:
-rhosigchi2(firstgen_matrix, fgvar, Egamma_range_fg, Ex_range_fg, 0, N=100) # rhosigchi2 is a code-up of Schiller's original method
+rhosigchi2(firstgen_matrix, fgvar, Egamma_range_fg, Ex_range_fg, 0, N=120) # rhosigchi2 is a code-up of Schiller's original method
 # rhosigchi(firstgen_matrix, fgvar, Egamma_range_fg, Ex_range_fg, N=50, method="Nelder-Mead")
 sys.exit(0)
 
