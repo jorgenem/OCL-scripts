@@ -459,63 +459,62 @@ def rhosigchi(fgmat, fgvar, Egamma_range, Ex_range, N, method="BFGS"):
 	Ex_high = 7500
 	Ex_low = 4000
 	Egamma_low = 1500
-	E_padding = 900
-	
-	# plt.figure(0)
-	# plt.subplot(2,2,1)
-	# print np.where(Egamma_range > Ex_range[-1])
-	int_Egamma_padding = int(E_padding / (Egamma_range[1]-Egamma_range[0]))
-	# print int_Egamma_padding
-	index_Egamma_max = np.where(Egamma_range > Ex_range[-1])[0][0]
-	fgmat_padded = fgmat[:,0:(index_Egamma_max+int_Egamma_padding)]
-	fgvar_padded = fgvar[:,0:(index_Egamma_max+int_Egamma_padding)]
-	int_Ex_padding = int(E_padding / (Ex_range[1]-Ex_range[0]))
-	# print np.zeros((int_Ex_padding, fgmat_padded.shape[1])).shape
-	# print fgmat_padded.shape
-	fgmat_padded = np.append(np.zeros((int_Ex_padding, fgmat_padded.shape[1])), fgmat_padded, axis=0) # Pad with zeros below zero in Ex
-	fgmat_padded = np.append(fgmat_padded, np.zeros((int_Ex_padding, fgmat_padded.shape[1])), axis=0) # Pad with zeros above Exmax in Ex
-	fgmat_padded = np.append(np.zeros((fgmat_padded.shape[0], int_Egamma_padding)), fgmat_padded, axis=1) # Pad with zeros below zero in Egamma
-	fgmat_padded = rebin(fgmat_padded, fgmat_padded.shape[0], rebin_axis=1)
-	# same for fgvar:
-	fgvar_padded = np.append(np.zeros((int_Ex_padding, fgvar_padded.shape[1])), fgvar_padded, axis=0) # Pad with zeros below zero in Ex
-	fgvar_padded = np.append(fgvar_padded, np.zeros((int_Ex_padding, fgvar_padded.shape[1])), axis=0) # Pad with zeros above Exmax in Ex
-	fgvar_padded = np.append(np.zeros((fgvar_padded.shape[0], int_Egamma_padding)), fgvar_padded, axis=1) # Pad with zeros below zero in Egamma
-	fgvar_padded = rebin(fgvar_padded, fgvar_padded.shape[0], rebin_axis=1) # TODO: Think carefully about the math in rebinning a variance matrix. Does it make sense? Probably OK as long as it's the variance and not stdev.
-	# fgmat_cut = np.flipud(fgmat_cut)
-	# plt.pcolormesh(fgmat_padded)
-	
-	# plt.subplot(2,2,2)
-	Ex_array_padded = np.linspace(Ex_range[0]-int_Ex_padding*(Ex_range[1]-Ex_range[0]), Ex_range[-1] + int_Ex_padding*(Ex_range[1]-Ex_range[0]), fgmat_padded.shape[0])
-	Egamma_array_padded = np.linspace(Egamma_range[0]-int_Egamma_padding*(Egamma_range[1]-Egamma_range[0]), Egamma_range[index_Egamma_max], fgmat_padded.shape[1])
-	Egammamesh, Exmesh = np.meshgrid(Egamma_array_padded, Ex_array_padded)
-	fgmat_cut = np.where(np.logical_and(Exmesh > Ex_low, np.logical_and(Exmesh < Ex_high, Egammamesh > Egamma_low)), fgmat_padded, 0)
-	fgvar_cut = np.where(np.logical_and(Exmesh > Ex_low, np.logical_and(Exmesh < Ex_high, Egammamesh > Egamma_low)), fgvar_padded, 0)
-	mask_EiEg = np.where(np.logical_and(Exmesh > Ex_low, np.logical_and(Exmesh < Ex_high, Egammamesh > Egamma_low)), 1, 0)
-	# plt.pcolormesh(fgmat_cut)
-	
-	# plt.subplot(2,2,3)
-	# Normalize (for each Ei bin, which is right)
-	fgmat_cut = div0(fgmat_cut, fgmat_cut.sum(axis=1).reshape(fgmat_cut.shape[0],1))
-	fgvar_cut = div0(fgvar_cut, np.power(fgmat_cut.sum(axis=1).reshape(fgmat_cut.shape[0],1),2)) # Normalize the variance accordingly, using that Var(aX) = a^2 Var(X).
-	# plt.pcolormesh(fgmat_cut)
-	
+	Egamma_padding = 900 # We allow gamma energies somewhat higher than Ex_max because of detector uncertainty
 
-	# fgmat_EiEgamma_cut = fgmat_EiEgamma[0:150,55:205]
-	# fgvar_EiEgamma_cut = fgvar_EiEgamma[0:150,55:205]
-	# plt.matshow(fgmat_EiEgamma_cut)
-	fg_EiEg = rebin(rebin(fgmat_cut, N, rebin_axis=0), N, rebin_axis = 1)
-	fgv_EiEg = rebin(rebin(fgvar_cut, N, rebin_axis=0), N, rebin_axis = 1)
-	mask_EiEg = np.where(rebin(rebin(mask_EiEg, N, rebin_axis=0), N, rebin_axis = 1) > 0, 1, 0) # Rebin the masking array, resetting to binary values in an inclusive way (i.e. edge values are upscaled to 1 rather than down to 0)
-	fg_EfEg = EitoEf(fg_EiEg, Ex_array_padded)
-	fgv_EfEg = EitoEf(fgv_EiEg, Ex_array_padded)
-	mask_EfEg = EitoEf(mask_EiEg)
 	
+	# Calculate maximal gamma energy we include, given by Ex_max + padding
+	Egamma_max = Ex_range[-1] + Egamma_padding
+	if Egamma_max > Egamma_range[-1]:
+		Egamma_max = Egamma_range[-1]
+	# Take out the slice along gamma axis corresponding to these energy limits (also for variance matrix)
+	fgmat_padded, Egamma_range_sliced = slice_matrix_simple(fgmat, Egamma_range, [0,Egamma_max], axis=1)
+	fgvar_padded, tmp = slice_matrix_simple(fgvar, Egamma_range, [0,Egamma_max], axis=1)
+	plt.figure(0)
+	plt.pcolormesh(Egamma_range_sliced, Ex_range, fgmat_padded)
+	plt.show()
+	# Add the same padding on top of Ex to get the same max energy
+	N_Ex_padding_top = int(Egamma_padding/(Ex_range[1]-Ex_range[0])) # Number of additional Ex bins needed on top to reach same max energy
+	# Also we need it below zero in both Ex and Egamma direction to facilitate transformation to Ef-Egamma coordinates
+	N_Ex_padding_bottom = int((Egamma_padding+Ex_range[0])/(Ex_range[1]-Ex_range[0])) 								   # Number of additional Ex/Eg bins needed below zero,
+	N_Eg_padding_bottom = int((Egamma_padding+Egamma_range_sliced[0])/(Egamma_range_sliced[1]-Egamma_range_sliced[0])) # taking into account that first Ex point may not be zero.
+	# Apply the padding
+	fgmat_padded = np.append(fgmat_padded, np.zeros((N_Ex_padding_top, fgmat_padded.shape[1])), axis=0) # Pad with zeros above in Ex
+	fgmat_padded = np.append(np.zeros((N_Ex_padding_bottom, fgmat_padded.shape[1])), fgmat_padded, axis=0) # Pad with zeros below in Ex
+	fgmat_padded = np.append(np.zeros((fgmat_padded.shape[0], N_Eg_padding_bottom)), fgmat_padded, axis=1) # Pad with zeros below in Eg
+	# Same for fgvar
+	fgvar_padded = np.append(fgvar_padded, np.zeros((N_Ex_padding_top, fgvar_padded.shape[1])), axis=0) # Pad with zeros above in Ex
+	fgvar_padded = np.append(np.zeros((N_Ex_padding_bottom, fgvar_padded.shape[1])), fgvar_padded, axis=0) # Pad with zeros below in Ex
+	fgvar_padded = np.append(np.zeros((fgvar_padded.shape[0], N_Eg_padding_bottom)), fgvar_padded, axis=1) # Pad with zeros below in Eg
+	# Rebin to NxN
+	fg_EiEg = rebin(rebin(fgmat_padded, N, rebin_axis=0), N, rebin_axis=1)
+	fgv_EiEg = rebin(rebin(fgvar_padded, N, rebin_axis=0), N, rebin_axis=1)
+	# Make the corresponding axis arrays of length N
+	Ex_range_squared = np.linspace(Ex_range[0]-Egamma_padding, Ex_range[-1]+Egamma_padding, N)
+	Eg_range_squared = np.linspace(Egamma_range_sliced[0]-Egamma_padding, Egamma_range_sliced[-1], N)
 
-	# fgmat_EiEgamma = np.zeros(fgmat_cut.shape)
-	# fgvar_EiEgamma = np.zeros(fgvar_cut.shape)
-	# for i in range(fgmat_cut.shape[0]):
-	# 	fgmat_EiEgamma[i,0:fgmat_cut.shape[0]-i] = fgmat_cut.diagonal(-i)
-	# 	fgvar_EiEgamma[i,0:fgmat_cut.shape[0]-i] = fgvar_cut.diagonal(-i)
+	# In case we want to apply some more restricting energy cuts than in the FG spectrum, they are applied here using a 2D meshgrid of energy ranges:
+	Egammamesh, Exmesh = np.meshgrid(Eg_range_squared, Ex_range_squared)
+	# Create a binary mask defining the area of the fg matrix that we are restricting to
+	mask_EiEg = np.where(np.logical_and(Exmesh > Ex_low, np.logical_and(Exmesh < Ex_high, Egammamesh > Egamma_low)), 1, 0) 
+	# Also make the mask cut away gamma counts higher than Ex + E_gamma_padding
+	mask_EiEg = np.where( Egammamesh < Exmesh + Egamma_padding, mask_EiEg, 0 ) 
+	# Apply mask to firstgen matrix and variance matrix:
+	fg_EiEG = mask_EiEg*fg_EiEg
+	fgv_EiEg = mask_EiEg*fgv_EiEg
+	# fgmat_cut = np.where(np.logical_and(Exmesh > Ex_low, np.logical_and(Exmesh < Ex_high, Egammamesh > Egamma_low)), fgmat_padded, 0)
+	# fgvar_cut = np.where(np.logical_and(Exmesh > Ex_low, np.logical_and(Exmesh < Ex_high, Egammamesh > Egamma_low)), fgvar_padded, 0)
+	plt.pcolormesh(fg_EiEg)
+	
+	plt.subplot(2,2,3)
+	# Normalize the fg matrix and variance matrix (for each Ei bin, which is the way to do it to have normalized branching ratios)
+	fg_EiEg = div0(fg_EiEg, fg_EiEg.sum(axis=1).reshape(fg_EiEg.shape[0],1))
+	fgv_EiEg = div0(fgv_EiEg, np.power(fg_EiEg.sum(axis=1).reshape(fg_EiEg.shape[0],1),2)) # Normalize the variance accordingly, using that Var(aX) = a^2 Var(X).
+	plt.pcolormesh(Eg_range_squared, Ex_range_squared, fg_EiEg)
+	# # Need two different versions of matrices, one with Ei and one with Ef on y axis.
+	fg_EfEg = EitoEf(fg_EiEg, Ex_range_squared)
+	fgv_EfEg = EitoEf(fgv_EiEg, Ex_range_squared)
+	# Also get the mask in EfEg coordinates
+	mask_EfEg = EitoEf(mask_EiEg, Ex_range_squared)
 
 
 	# Test applying smoothing to the variance matrix:
@@ -820,6 +819,19 @@ def rhosigchi2(fgmat, fgvar, Egamma_range, Ex_range, dE_gamma, N):
 	# Now start iterating.
 	N_iterations = 5
 	for iteration in range(N_iterations):
+
+		# Plot current estimate of F and rho
+		plt.figure(20)
+		plt.subplot(2,1,1)
+		plt.plot(F)
+		plt.yscale('log')
+		plt.subplot(2,1,2)
+		plt.plot(rho)
+		plt.yscale('log')
+		plt.title('F (top) and rho (bottom). iteration %d'%iteration)
+		plt.show()
+
+
 		# Make meshgrid of F and rho
 		F2D_EfEg, rho2D_EfEg = np.meshgrid(F, rho, indexing='xy')
 		# Also need them as functions of Ei:
@@ -877,11 +889,13 @@ def rhosigchi2(fgmat, fgvar, Egamma_range, Ex_range, dE_gamma, N):
 		rho_old = rho   
 
 		# Calculate updated F and rho:
-		F = div0( (rho2D_EfEg*phi).sum(axis=0), (np.power(rho2D_EfEg,2)*psi).sum(axis=0) ) # TODO: Could this be formulated as a matrix*vector operation?
+
+		# HACK: Multiplying by 1e2 to counter the unwanted behaviour where the function keeps decreasing through iterations. But it probably points to some more serious error somewhere.
+		F = 1e2* div0( (rho2D_EfEg*phi).sum(axis=0), (np.power(rho2D_EfEg,2)*psi).sum(axis=0) ) # TODO: Could this be formulated as a matrix*vector operation?
 		# Need to do some magic for rho: The relevant slices of phi and psi are diagonal Ei = Egamma + Ef. Mind-twisting! But I think it's simply the EfEg arranged versions of phi and psi.
 		phiEfEg = EitoEf(phi, Ex_range_squared)
 		psiEfEg = EitoEf(psi, Ex_range_squared)
-		rho = div0( np.dot(phiEfEg, F_old), np.dot(psiEfEg, np.power(F_old, 2)) )
+		rho = 1e2* div0( np.dot(phiEfEg, F_old), np.dot(psiEfEg, np.power(F_old, 2)) )
 		print "F.shape =", F.shape
 		print "rho.shape =", rho.shape
 
@@ -893,15 +907,7 @@ def rhosigchi2(fgmat, fgvar, Egamma_range, Ex_range, dE_gamma, N):
 		# 	rho = np.where(rho_old/rho > (1+P), rho_old*(1+P), rho)
 		# 	rho = np.where(rho/rho_old < 1/(1+P), rho_old/(1+P), rho)
 
-		plt.figure(20)
-		plt.subplot(2,1,1)
-		plt.plot(F)
-		plt.yscale('log')
-		plt.subplot(2,1,2)
-		plt.plot(rho)
-		plt.yscale('log')
-		plt.title('F (top) and rho (bottom). iteration %d'%iteration)
-		plt.show()
+
 
 
 
