@@ -938,19 +938,19 @@ def rhosigchi2(fgmat, fgvar, Egamma_range, Ex_range, dE_gamma, N):
 
 def EitoEf(matrix_EiEg, Ex_range):
 	# Find out which index along Ex is the zero energy
-	# i_Ex_zero = np.where(Ex_range > 0)[0][0]
-	# if np.abs(Ex_range[i_Ex_zero]) > np.abs(Ex_range[i_Ex_zero-1]):
-	# 	i_Ex_zero -= 1
+	i_Ex_zero = np.where(Ex_range > 0)[0][0]
+	if np.abs(Ex_range[i_Ex_zero]) > np.abs(Ex_range[i_Ex_zero-1]):
+		i_Ex_zero -= 1
 
-	# print "i_Ex_zero =", i_Ex_zero, "Ex_range[i_Ex_zero] =", Ex_range[i_Ex_zero]
+	print "i_Ex_zero =", i_Ex_zero, "Ex_range[i_Ex_zero] =", Ex_range[i_Ex_zero]
 
 	matrix_EfEg = np.zeros(matrix_EiEg.shape)
 	# All the sub-diagonals from the main diagonal (Ei=Eg) and upwards in Ei > Eg direction are filled into the rows starting from i_Ex_zero:
-	for i in range(0, matrix_EiEg.shape[0]):
-		matrix_EfEg[i,0:matrix_EiEg.shape[0]-i] = matrix_EiEg.diagonal(-i)
+	for i in range(0, matrix_EiEg.shape[0]-i_Ex_zero):
+		matrix_EfEg[i+i_Ex_zero,0:len(matrix_EiEg.diagonal(-i))] = matrix_EiEg.diagonal(-i)
 		print matrix_EiEg.diagonal(-i)
-	# for i in range(1, i_Ex_zero):
-	# 	matrix_EfEg[i_Ex_zero-i,0:len(matrix_EiEg.diagonal(i))] = matrix_EiEg.diagonal(i)
+	for i in range(1, i_Ex_zero+1):
+		matrix_EfEg[i_Ex_zero-i,i:len(matrix_EiEg.diagonal(i))+i] = matrix_EiEg.diagonal(i)
 	print matrix_EiEg.shape
 	# for i in range(0, matrix_EiEg.shape[0]): # i is the coordinate of the EfEg matrix row
 	# 	matrix_EfEg[i,0:len(matrix_EiEg.diagonal(-i+i_Ex_zero))] = matrix_EiEg.diagonal(-i+i_Ex_zero)

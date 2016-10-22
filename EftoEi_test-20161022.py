@@ -13,20 +13,22 @@ print "original:"
 print a2d
 
 plt.subplot(2,2,2)
-plt.title('EftoEi')
-plt.pcolormesh(axis,axis,EftoEi(a2d,axis))
-print "EftoEi:"
-print EftoEi(a2d,axis)
+plt.title('EitoEf')
+plt.pcolormesh(axis,axis,EitoEf(a2d,axis))
+print "EitoEf:"
+print EitoEf(a2d,axis)
 
 plt.subplot(2,2,3)
-plt.title('EitoEf(EftoEi)')
-plt.pcolormesh(axis,axis,EitoEf(EftoEi(a2d,axis),axis))
-print "EitoEf:"
-print EitoEf(EftoEi(a2d,axis),axis)
+plt.title('EftoEi(EitoEf)')
+plt.pcolormesh(axis,axis,EftoEi(EitoEf(a2d,axis),axis))
+print "EftoEi(EitoEf):"
+print EftoEi(EitoEf(a2d,axis),axis)
 
 plt.subplot(2,2,4)
-plt.title('EftoEi(EitoEf(EftoEi))')
-plt.pcolormesh(axis,axis,EftoEi(EitoEf(EftoEi(a2d,axis),axis),axis))
+plt.title('EitoEi(EitoEf(EftoEi))')
+plt.pcolormesh(axis,axis,EitoEf(EftoEi(EitoEf(a2d,axis),axis),axis))
+print "EitoEi(EitoEf(EftoEi)):"
+print EftoEi(EitoEf(a2d,axis),axis)
 
 plt.show()
 
