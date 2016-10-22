@@ -961,12 +961,17 @@ def EitoEf(matrix_EiEg, Ex_range):
 
 def EftoEi(matrix_EfEg, Ex_range):
 	 # TODO test if this is proper inversion of EitoEf
-	# i_Ex_zero = np.where(Ex_range > 0)[0][0]
-	# if np.abs(Ex_range[i_Ex_zero]) > np.abs(Ex_range[i_Ex_zero-1]):
-		# i_Ex_zero -= 1
+	i_Ex_zero = np.where(Ex_range > 0)[0][0]
+	if np.abs(Ex_range[i_Ex_zero]) > np.abs(Ex_range[i_Ex_zero-1]):
+		i_Ex_zero -= 1
+	print "i_Ex_zero =", i_Ex_zero, "Ex_range[i_Ex_zero] =", Ex_range[i_Ex_zero]
+
 	matrix_EiEg = np.zeros(matrix_EfEg.shape)
-	for i in range(0, matrix_EfEg.shape[0]+1):
-		matrix_EiEg[matrix_EfEg.shape[0]-i-1,0:matrix_EfEg.shape[0]-i] = np.flipud(matrix_EfEg).diagonal(-i)
+	for i in range(0, matrix_EfEg.shape[0]-i_Ex_zero):
+		matrix_EiEg[matrix_EfEg.shape[0]-i-1,0:len(np.flipud(matrix_EfEg).diagonal(-i+i_Ex_zero))] = np.flipud(matrix_EfEg).diagonal(-i+i_Ex_zero)
+	for i in range(0, i_Ex_zero):
+		matrix_EiEg[i,0:len(np.flipud(matrix_EfEg).diagonal(-matrix_EfEg.shape[0]+i+i_Ex_zero))] = np.flipud(matrix_EfEg).diagonal(-matrix_EfEg.shape[0]+i+i_Ex_zero)
+		# print i, -matrix_EfEg.shape[0]+i_Ex_zero+i, np.flipud(matrix_EfEg).diagonal(-matrix_EfEg.shape[0]+i+i_Ex_zero)
 	# TODO: THe below probably needs to be included to account for Eg > Ei events. But must figure out how to do it. Use a test plot.
 	# for i in range(1, i_Ex_zero):
 	# 	matrix_EiEg[i,0:len(np.flipud(matrix_EfEg).diagonal(i))] = np.flipud(matrix_EfEg).diagonal(i)
