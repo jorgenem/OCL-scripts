@@ -968,9 +968,9 @@ def EftoEi(matrix_EfEg, Ex_range):
 
 	matrix_EiEg = np.zeros(matrix_EfEg.shape)
 	for i in range(0, matrix_EfEg.shape[0]-i_Ex_zero):
-		matrix_EiEg[matrix_EfEg.shape[0]-i-1,0:len(np.flipud(matrix_EfEg).diagonal(-i+i_Ex_zero))] = np.flipud(matrix_EfEg).diagonal(-i+i_Ex_zero)
+		matrix_EiEg[matrix_EfEg.shape[0]-i-i_Ex_zero-1,0:len(np.flipud(matrix_EfEg).diagonal(-i))] = np.flipud(matrix_EfEg).diagonal(-i)
 	for i in range(0, i_Ex_zero):
-		matrix_EiEg[i,0:len(np.flipud(matrix_EfEg).diagonal(-matrix_EfEg.shape[0]+i+i_Ex_zero))] = np.flipud(matrix_EfEg).diagonal(-matrix_EfEg.shape[0]+i+i_Ex_zero)
+		matrix_EiEg[matrix_EfEg.shape[0]-i-1,matrix_EfEg.shape[0]-len(np.flipud(matrix_EfEg).diagonal(i_Ex_zero-i)):matrix_EfEg.shape[0]] = np.flipud(matrix_EfEg).diagonal(i_Ex_zero-i)
 		# print i, -matrix_EfEg.shape[0]+i_Ex_zero+i, np.flipud(matrix_EfEg).diagonal(-matrix_EfEg.shape[0]+i+i_Ex_zero)
 	# TODO: THe below probably needs to be included to account for Eg > Ei events. But must figure out how to do it. Use a test plot.
 	# for i in range(1, i_Ex_zero):
