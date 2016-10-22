@@ -811,29 +811,32 @@ def rhosigchi2(fgmat, fgvar, Egamma_range, Ex_range, dE_gamma, N):
 	# Make initial F and rho
 	rho = np.ones(N)
 	# F = rebin(fg_EfEg.mean(axis=0), N, rebin_axis=0)
-	F = fg_EiEg.mean(axis=0)
+	F = fg_EiEg.mean(axis=0) # CHECK THAT THIS IS PROPERLY NORMALIZED
 	# plt.figure(2)
 	# plt.plot(F)
 	# plt.show()
 
 	# Now start iterating.
-	N_iterations = 5
+	N_iterations = 10
 	for iteration in range(N_iterations):
 
 		# Plot current estimate of F and rho
 		plt.figure(20)
+		plt.title('F (top) and rho (bottom). iteration %d'%iteration)
 		plt.subplot(2,1,1)
 		plt.plot(F)
 		plt.yscale('log')
 		plt.subplot(2,1,2)
 		plt.plot(rho)
 		plt.yscale('log')
-		plt.title('F (top) and rho (bottom). iteration %d'%iteration)
 		plt.show()
 
 
+
 		# Make meshgrid of F and rho
-		F2D_EfEg, rho2D_EfEg = np.meshgrid(F, rho, indexing='xy')
+		rho2D_EfEg, F2D_EfEg = np.meshgrid(rho, F, indexing='ij')
+		# rho2D_EfEg = rho2D_EfEg.T # Transpose to make it right?
+
 		# Also need them as functions of Ei:
 		# F2D_EiEg = np.zeros(F2D_EfEg.shape)
 		# rho2D_EiEg = np.zeros(rho2D_EfEg.shape)
@@ -842,23 +845,38 @@ def rhosigchi2(fgmat, fgvar, Egamma_range, Ex_range, dE_gamma, N):
 		# 	rho2D_EiEg[F2D_EfEg.shape[0]-i-1,0:F2D_EfEg.shape[0]-i] = np.flipud(rho2D_EfEg).diagonal(-i)
 		# 	print "check"
 		F2D_EiEg = EftoEi(F2D_EfEg, Ex_range_squared)
-		rho2D_EiEg = EftoEi(F2D_EfEg, Ex_range_squared)
+		rho2D_EiEg = EftoEi(rho2D_EfEg, Ex_range_squared)
 
-		plt.figure(3)
-		plt.subplot(2,1,1)
-		plt.pcolormesh(F2D_EfEg)
-		plt.subplot(2,1,2)
-		plt.pcolormesh(F2D_EiEg)
-		plt.show()	
+		# # Plot to inspect the F in Ef and Ei coordinates:
+		# plt.figure(3)
+		# plt.subplot(2,1,1)
+		# plt.pcolormesh(F2D_EfEg)
+		# plt.subplot(2,1,2)
+		# plt.pcolormesh(F2D_EiEg)
+		# plt.show()	
+
+		# Plot the 2D product of F and rho in EiEg coordinates (the "theoretical first-generation spectrum"):
+		fgtheo = F2D_EiEg*rho2D_EiEg
+		plt.figure(4)
+		plt.title('Theoretical first generation spectrum (product of F and rho)')
+		plt.subplot(2,2,1)
+		plt.pcolormesh(Eg_range_squared, Ex_range_squared, F2D_EiEg)
+		plt.subplot(2,2,2)
+		plt.pcolormesh(Eg_range_squared, Ex_range_squared, rho2D_EiEg)
+		plt.subplot(2,2,3)
+		plt.pcolormesh(Eg_range_squared, Ex_range_squared, fgtheo*mask_EiEg)
+		plt.subplot(2,2,4)
+		plt.pcolormesh(Eg_range_squared, Ex_range_squared, fg_EiEg*mask_EiEg)
+		plt.show()
 	
-		# Now calculate all the helping functions(vectors/matrices) according to Schiller (2000), with the same naming:
-		s = ( F2D_EiEg * rho2D_EiEg ).sum(axis=1) # s(Ei)
+		# Now calculate all the helping functions(vectors/matrices) according to Schiller (NIM, 2000), with the same naming:
+		s = ( F2D_EfEg * rho2D_EfEg ).sum(axis=1) # s(Ei) # CHANGED 20161020 rho was EiEg should be EfEg? Also tried changing F to EfEg but unsure.
 		# plt.plot(s)
 		# plt.show()
 		# plt.matshow(np.log(np.power( div0( F2D_EiEg*rho2D_EiEg, fgv_EiEg ), 2)))
 		# plt.show()
-		a = ( div0( np.power(F2D_EiEg*rho2D_EiEg, 2), fgv_EiEg ) ).sum(axis=1) # a(Ei)
-		b = ( div0( F2D_EiEg*rho2D_EiEg*fg_EiEg, fgv_EiEg ) ).sum(axis=1) # b(Ei)
+		a = ( div0( np.power(F2D_EfEg*rho2D_EfEg, 2), fgv_EiEg ) ).sum(axis=1) # a(Ei) # CHANGED 20161020 rho was EiEg should be EfEg? Also tried changing F to EfEg but unsure.
+		b = ( div0( F2D_EfEg*rho2D_EfEg*fg_EiEg, fgv_EiEg ) ).sum(axis=1) # b(Ei) # CHANGED 20161020 rho was EiEg should be EfEg? Also tried changing F to EfEg but unsure.
 		# plt.matshow(np.log(div0( F2D_EiEg*rho2D_EiEg*fg_EiEg, np.power(fgv_EiEg, 2) )))
 		# plt.show()
 		# Need matrix versions for multiplication. Each column is a repeat of the s/a/b vector, respectively
@@ -891,11 +909,11 @@ def rhosigchi2(fgmat, fgvar, Egamma_range, Ex_range, dE_gamma, N):
 		# Calculate updated F and rho:
 
 		# HACK: Multiplying by 1e2 to counter the unwanted behaviour where the function keeps decreasing through iterations. But it probably points to some more serious error somewhere.
-		F = 1e2* div0( (rho2D_EfEg*phi).sum(axis=0), (np.power(rho2D_EfEg,2)*psi).sum(axis=0) ) # TODO: Could this be formulated as a matrix*vector operation?
+		F =  div0( (rho2D_EfEg*phi).sum(axis=0), (np.power(rho2D_EfEg,2)*psi).sum(axis=0) ) # TODO: Could this be formulated as a matrix*vector operation?
 		# Need to do some magic for rho: The relevant slices of phi and psi are diagonal Ei = Egamma + Ef. Mind-twisting! But I think it's simply the EfEg arranged versions of phi and psi.
 		phiEfEg = EitoEf(phi, Ex_range_squared)
 		psiEfEg = EitoEf(psi, Ex_range_squared)
-		rho = 1e2* div0( np.dot(phiEfEg, F_old), np.dot(psiEfEg, np.power(F_old, 2)) )
+		rho =  div0( np.dot(phiEfEg, F_old), np.dot(psiEfEg, np.power(F_old, 2)) )
 		print "F.shape =", F.shape
 		print "rho.shape =", rho.shape
 
@@ -920,18 +938,19 @@ def rhosigchi2(fgmat, fgvar, Egamma_range, Ex_range, dE_gamma, N):
 
 def EitoEf(matrix_EiEg, Ex_range):
 	# Find out which index along Ex is the zero energy
-	i_Ex_zero = np.where(Ex_range > 0)[0][0]
-	if np.abs(Ex_range[i_Ex_zero]) > np.abs(Ex_range[i_Ex_zero-1]):
-		i_Ex_zero -= 1
+	# i_Ex_zero = np.where(Ex_range > 0)[0][0]
+	# if np.abs(Ex_range[i_Ex_zero]) > np.abs(Ex_range[i_Ex_zero-1]):
+	# 	i_Ex_zero -= 1
 
-	print "i_Ex_zero =", i_Ex_zero, "Ex_range[i_Ex_zero] =", Ex_range[i_Ex_zero]
+	# print "i_Ex_zero =", i_Ex_zero, "Ex_range[i_Ex_zero] =", Ex_range[i_Ex_zero]
 
 	matrix_EfEg = np.zeros(matrix_EiEg.shape)
 	# All the sub-diagonals from the main diagonal (Ei=Eg) and upwards in Ei > Eg direction are filled into the rows starting from i_Ex_zero:
-	for i in range(0, matrix_EiEg.shape[0]-i_Ex_zero):
-		matrix_EfEg[i+i_Ex_zero,0:matrix_EiEg.shape[0]-i] = matrix_EiEg.diagonal(-i)
-	for i in range(1, i_Ex_zero):
-		matrix_EfEg[i_Ex_zero-i,0:len(matrix_EiEg.diagonal(i))] = matrix_EiEg.diagonal(i)
+	for i in range(0, matrix_EiEg.shape[0]):
+		matrix_EfEg[i,0:matrix_EiEg.shape[0]-i] = matrix_EiEg.diagonal(-i)
+		print matrix_EiEg.diagonal(-i)
+	# for i in range(1, i_Ex_zero):
+	# 	matrix_EfEg[i_Ex_zero-i,0:len(matrix_EiEg.diagonal(i))] = matrix_EiEg.diagonal(i)
 	print matrix_EiEg.shape
 	# for i in range(0, matrix_EiEg.shape[0]): # i is the coordinate of the EfEg matrix row
 	# 	matrix_EfEg[i,0:len(matrix_EiEg.diagonal(-i+i_Ex_zero))] = matrix_EiEg.diagonal(-i+i_Ex_zero)
@@ -942,12 +961,12 @@ def EitoEf(matrix_EiEg, Ex_range):
 
 def EftoEi(matrix_EfEg, Ex_range):
 	 # TODO test if this is proper inversion of EitoEf
-	i_Ex_zero = np.where(Ex_range > 0)[0][0]
-	if np.abs(Ex_range[i_Ex_zero]) > np.abs(Ex_range[i_Ex_zero-1]):
-		i_Ex_zero -= 1
+	# i_Ex_zero = np.where(Ex_range > 0)[0][0]
+	# if np.abs(Ex_range[i_Ex_zero]) > np.abs(Ex_range[i_Ex_zero-1]):
+		# i_Ex_zero -= 1
 	matrix_EiEg = np.zeros(matrix_EfEg.shape)
-	for i in range(1, matrix_EfEg.shape[0]-i_Ex_zero+1):
-		matrix_EiEg[matrix_EfEg.shape[0]-i,0:matrix_EfEg.shape[0]-i] = np.flipud(matrix_EfEg).diagonal(-i)
+	for i in range(0, matrix_EfEg.shape[0]+1):
+		matrix_EiEg[matrix_EfEg.shape[0]-i-1,0:matrix_EfEg.shape[0]-i] = np.flipud(matrix_EfEg).diagonal(-i)
 	# TODO: THe below probably needs to be included to account for Eg > Ei events. But must figure out how to do it. Use a test plot.
 	# for i in range(1, i_Ex_zero):
 	# 	matrix_EiEg[i,0:len(np.flipud(matrix_EfEg).diagonal(i))] = np.flipud(matrix_EfEg).diagonal(i)
