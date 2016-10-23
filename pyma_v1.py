@@ -817,7 +817,7 @@ def rhosigchi2(fgmat, fgvar, Egamma_range, Ex_range, dE_gamma, N):
 	# plt.show()
 
 	# Now start iterating.
-	N_iterations = 10
+	N_iterations = 2
 	for iteration in range(N_iterations):
 
 		# Plot current estimate of F and rho
@@ -856,27 +856,43 @@ def rhosigchi2(fgmat, fgvar, Egamma_range, Ex_range, dE_gamma, N):
 		# plt.show()	
 
 		# Plot the 2D product of F and rho in EiEg coordinates (the "theoretical first-generation spectrum"):
-		fgtheo = F2D_EiEg*rho2D_EiEg
+		fgtheo_EiEg = F2D_EiEg*rho2D_EiEg
 		plt.figure(4)
 		plt.title('Theoretical first generation spectrum (product of F and rho)')
 		plt.subplot(2,2,1)
+		plt.title('F2D_EiEg')
 		plt.pcolormesh(Eg_range_squared, Ex_range_squared, F2D_EiEg)
 		plt.subplot(2,2,2)
+		plt.title('rho2D_EiEg')
 		plt.pcolormesh(Eg_range_squared, Ex_range_squared, rho2D_EiEg)
 		plt.subplot(2,2,3)
-		plt.pcolormesh(Eg_range_squared, Ex_range_squared, fgtheo*mask_EiEg)
+		plt.title('fgtheo_EiEg')
+		plt.pcolormesh(Eg_range_squared, Ex_range_squared, fgtheo_EiEg*mask_EiEg)
 		plt.subplot(2,2,4)
+		plt.title('fg_EiEg')
 		plt.pcolormesh(Eg_range_squared, Ex_range_squared, fg_EiEg*mask_EiEg)
 		plt.show()
 	
 		# Now calculate all the helping functions(vectors/matrices) according to Schiller (NIM, 2000), with the same naming:
-		s = ( F2D_EfEg * rho2D_EfEg ).sum(axis=1) # s(Ei) # CHANGED 20161020 rho was EiEg should be EfEg? Also tried changing F to EfEg but unsure.
-		# plt.plot(s)
-		# plt.show()
+		s = ( F2D_EiEg * rho2D_EfEg *mask_EiEg).sum(axis=1) # s(Ei) # CHANGED 20161020 rho was EiEg should be EfEg? Also tried changing F to EfEg but unsure. 20161022 changed back for further testing, also multiplied with mask. Now also trying to use different for the two (Ei for F and Ef for rho)
+		plt.figure()
+		plt.subplot(1,2,1)
+		plt.title('F2D_EiEg*rho2D_EfEg ')
+		plt.pcolormesh(Eg_range_squared, Ex_range_squared, F2D_EiEg * rho2D_EfEg * mask_EiEg)
+		plt.subplot(1,2,2)
+		plt.title('F2D*rho2D EiEg both')
+		plt.pcolormesh(Eg_range_squared, Ex_range_squared, F2D_EiEg * rho2D_EiEg * mask_EiEg)
+
+		plt.figure()
+		plt.plot(s, label='EiEg')
+		plt.plot(( F2D_EfEg * rho2D_EfEg * mask_EfEg).sum(axis=1), label='EfEg')
+		plt.title('s comparison, iteration %d'%iteration)
+		plt.legend()
+		plt.show()
 		# plt.matshow(np.log(np.power( div0( F2D_EiEg*rho2D_EiEg, fgv_EiEg ), 2)))
 		# plt.show()
-		a = ( div0( np.power(F2D_EfEg*rho2D_EfEg, 2), fgv_EiEg ) ).sum(axis=1) # a(Ei) # CHANGED 20161020 rho was EiEg should be EfEg? Also tried changing F to EfEg but unsure.
-		b = ( div0( F2D_EfEg*rho2D_EfEg*fg_EiEg, fgv_EiEg ) ).sum(axis=1) # b(Ei) # CHANGED 20161020 rho was EiEg should be EfEg? Also tried changing F to EfEg but unsure.
+		a = ( div0( np.power(F2D_EiEg*rho2D_EfEg, 2), fgv_EiEg )  *mask_EiEg).sum(axis=1) # a(Ei) # CHANGED 20161020 rho was EiEg should be EfEg? Also tried changing F to EfEg but unsure. 20161022 changed back for further testing, also multiplied with mask.
+		b = ( div0( F2D_EiEg*rho2D_EfEg*fg_EiEg, fgv_EiEg )  *mask_EiEg).sum(axis=1) # b(Ei) # CHANGED 20161020 rho was EiEg should be EfEg? Also tried changing F to EfEg but unsure. 20161022 changed back for further testing, also multiplied with mask.
 		# plt.matshow(np.log(div0( F2D_EiEg*rho2D_EiEg*fg_EiEg, np.power(fgv_EiEg, 2) )))
 		# plt.show()
 		# Need matrix versions for multiplication. Each column is a repeat of the s/a/b vector, respectively

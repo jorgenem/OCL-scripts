@@ -2,7 +2,7 @@ from pyma_v1 import *
 
 # # Read MAMA matrix
 # # filename = "alfna-unfolded-20160518.m"
-# filename = "/home/jorgenem/Dropbox/PhD/184W-eksperiment/analysis_187Re/unfolding/alfna-attempted_removing_1p2MeV_Al-20160518.m"
+# filename = "/home/jorgenem/Dropbox/phd/184W-eksperiment/analysis_187Re/unfolding/alfna-attempted_removing_1p2MeV_Al-20160518.m"
 # matrix, a, x_array, y_array = read_mama(filename)
 # print a
 # Ex_max = 7500 # keV - maximum excitation energy
@@ -68,7 +68,7 @@ from pyma_v1 import *
 ##########################################################################
 # Read MAMA matrix
 # filename = "alfna-unfolded-20160518.m"
-filename = "/home/jorgenem/Dropbox/PhD/184W-eksperiment/analysis_187Re/unfolding/alfna-attempted_removing_1p2MeV_Al-20160518.m"
+filename = "/home/jorgenem/Dropbox/phd/184W-eksperiment/analysis_187Re/unfolding/alfna-attempted_removing_1p2MeV_Al-20160518.m"
 matrix, a, Egamma_range_matrix, Ex_range_matrix = read_mama(filename)
 Ex_max = 7500 # keV - maximum excitation energy
 # Ex_min = 300 # keV - minimal excitation energy, effectively moving the ground-state energy up because we cannot resolve the low-energy yrast gamma lines. This is weighed up by also using an effective multiplicity which is lower than the real one, again not considering the low-energy yrast gammas.
