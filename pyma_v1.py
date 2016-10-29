@@ -398,6 +398,8 @@ def first_generation_spectrum_test2(matrix, Egamma_range, Ex_range_mat, N_Exbins
 	return H, H-H_old, Egamma_range, Ex_range
 
 
+
+
 def rebin(array, N_final, rebin_axis=0):
 	# Function to rebin an M-dimensional array either to larger or smaller binsize.
 	# Rebinning is done with simple proportionality. E.g. for down-scaling rebinning (N_final < N_initial): 
@@ -412,6 +414,56 @@ def rebin(array, N_final, rebin_axis=0):
 	# along the new dimension of length N_initial, resulting in an array of the desired dimensionality.
 	indices = np.insert(array.shape, rebin_axis, N_final) # Indices to reshape 
 	return array.repeat(N_final, axis=rebin_axis).reshape(indices).sum(axis=(rebin_axis+1))/float(N_final)
+
+
+
+
+
+def rebin_and_shift(array, E_range, N_final, rebin_axis=0):
+	# Function to rebin an M-dimensional array either to larger or smaller binsize.
+	# Written by J{\o}rgen E. Midtb{\o}, University of Oslo, j.e.midtbo@fys.uio.no, github.com/jorgenem
+	# Latest change made 20161029.
+
+	# Rebinning is done with simple proportionality. E.g. for down-scaling rebinning (N_final < N_initial): 
+	# if a bin in the original spacing ends up between two bins in the reduced spacing, 
+	# then the counts of that bin are split proportionally between adjacent bins in the 
+	# rebinned array. 
+	# Upward binning (N_final > N_initial) is done in the same way, dividing the content of bins
+	# equally among adjacent bins.
+
+	# Technically it's done by repeating each element of array N_final times and dividing by N_final to 
+	# preserve total number of counts, then reshaping the array from M dimensions to M+1 before flattening 
+	# along the new dimension of length N_initial, resulting in an array of the desired dimensionality.
+
+	# This version (called rebin_and_shift rather than just rebin) takes in also the energy range array (lower bin edge)
+	# corresponding to the counts array, in order to be able to change the calibration. What it does is transform the
+	# coordinates such that the starting value of the rebinned axis is zero energy. This is done by shifting all
+	# bins, so we are discarding some of the eventual counts in the highest energy bins. However, there is usually a margin.
+	
+	N_initial = array.shape[rebin_axis] # Initial number of counts along rebin axis
+
+	# Repeat each bin of array Nfinal times and scale to preserve counts
+	array_rebinned = array.repeat(N_final, axis=rebin_axis)/float(N_final)
+
+	if E_range[0] < 0 or E_range[1] < E_range[0]:
+		print "Erorr in function rebin_and_shift(): Negative zero energy is not supported. (But it should be relatively easy to implement.)"
+		sys.exit(0)
+
+	# Calculate number of extra slices in Nf*Ni sized array required to get down to zero energy
+	n_extra = int(np.ceil(N_final * (E_range[0]/(E_range[1]-E_range[0]))))
+	# Append this matrix of zero counts in front of the array
+	indices_append = np.array(array_rebinned.shape)
+	indices_append[rebin_axis] = n_extra
+	array_rebinned = np.append(np.zeros(indices_append), array_rebinned, axis=rebin_axis)
+	array_rebinned = np.split(array_rebinned, [0, N_initial*N_final], axis=rebin_axis)[1]
+	indices = np.insert(array.shape, rebin_axis, N_final) # Indices to reshape to
+	array_rebinned = array_rebinned.reshape(indices).sum(axis=(rebin_axis+1)) 
+	E_range_shifted_and_scaled = np.linspace(0, E_range[-1]-E_range[0], N_final)
+	return array_rebinned, E_range_shifted_and_scaled
+
+
+
+
 
 def div0( a, b ):
     """ division function designed to ignore / 0, i.e. div0( [-1, 0, 1], 0 ) -> [0, 0, 0] """
@@ -698,7 +750,7 @@ def rhosigchi2(fgmat, fgvar, Egamma_range, Ex_range, dE_gamma, N):
 	# Also make the mask cut away gamma counts higher than Ex + E_gamma_padding
 	mask_EiEg = np.where( Egammamesh < Exmesh + Egamma_padding, mask_EiEg, 0 ) 
 	# Apply mask to firstgen matrix and variance matrix:
-	fg_EiEG = mask_EiEg*fg_EiEg
+	fg_EiEg = mask_EiEg*fg_EiEg
 	fgv_EiEg = mask_EiEg*fgv_EiEg
 	# fgmat_cut = np.where(np.logical_and(Exmesh > Ex_low, np.logical_and(Exmesh < Ex_high, Egammamesh > Egamma_low)), fgmat_padded, 0)
 	# fgvar_cut = np.where(np.logical_and(Exmesh > Ex_low, np.logical_and(Exmesh < Ex_high, Egammamesh > Egamma_low)), fgvar_padded, 0)
@@ -874,14 +926,17 @@ def rhosigchi2(fgmat, fgvar, Egamma_range, Ex_range, dE_gamma, N):
 		plt.show()
 	
 		# Now calculate all the helping functions(vectors/matrices) according to Schiller (NIM, 2000), with the same naming:
-		s = ( F2D_EiEg * rho2D_EfEg *mask_EiEg).sum(axis=1) # s(Ei) # CHANGED 20161020 rho was EiEg should be EfEg? Also tried changing F to EfEg but unsure. 20161022 changed back for further testing, also multiplied with mask. Now also trying to use different for the two (Ei for F and Ef for rho)
-		plt.figure()
-		plt.subplot(1,2,1)
-		plt.title('F2D_EiEg*rho2D_EfEg ')
-		plt.pcolormesh(Eg_range_squared, Ex_range_squared, F2D_EiEg * rho2D_EfEg * mask_EiEg)
-		plt.subplot(1,2,2)
-		plt.title('F2D*rho2D EiEg both')
-		plt.pcolormesh(Eg_range_squared, Ex_range_squared, F2D_EiEg * rho2D_EiEg * mask_EiEg)
+		# s = ( F2D_EiEg * rho2D_EfEg *mask_EiEg).sum(axis=1) # s(Ei) # CHANGED 20161020 rho was EiEg should be EfEg? Also tried changing F to EfEg but unsure. 20161022 changed back for further testing, also multiplied with mask. Now also trying to use different for the two (Ei for F and Ef for rho)
+		# plt.figure()
+		# plt.subplot(1,2,1)
+		# plt.title('F2D_EiEg*rho2D_EfEg ')
+		# plt.pcolormesh(Eg_range_squared, Ex_range_squared, F2D_EiEg * rho2D_EfEg * mask_EiEg)
+		# plt.subplot(1,2,2)
+		# plt.title('F2D*rho2D EiEg both')
+		# plt.pcolormesh(Eg_range_squared, Ex_range_squared, F2D_EiEg * rho2D_EiEg * mask_EiEg)
+
+		# 20161023: Trying to manually calculate the s, a and b with for loops:
+
 
 		plt.figure()
 		plt.plot(s, label='EiEg')
@@ -958,16 +1013,16 @@ def EitoEf(matrix_EiEg, Ex_range):
 	if np.abs(Ex_range[i_Ex_zero]) > np.abs(Ex_range[i_Ex_zero-1]):
 		i_Ex_zero -= 1
 
-	print "i_Ex_zero =", i_Ex_zero, "Ex_range[i_Ex_zero] =", Ex_range[i_Ex_zero]
+	# print "i_Ex_zero =", i_Ex_zero, "Ex_range[i_Ex_zero] =", Ex_range[i_Ex_zero]
 
 	matrix_EfEg = np.zeros(matrix_EiEg.shape)
 	# All the sub-diagonals from the main diagonal (Ei=Eg) and upwards in Ei > Eg direction are filled into the rows starting from i_Ex_zero:
 	for i in range(0, matrix_EiEg.shape[0]-i_Ex_zero):
 		matrix_EfEg[i+i_Ex_zero,0:len(matrix_EiEg.diagonal(-i))] = matrix_EiEg.diagonal(-i)
-		print matrix_EiEg.diagonal(-i)
+		# print matrix_EiEg.diagonal(-i)
 	for i in range(1, i_Ex_zero+1):
 		matrix_EfEg[i_Ex_zero-i,i:len(matrix_EiEg.diagonal(i))+i] = matrix_EiEg.diagonal(i)
-	print matrix_EiEg.shape
+	# print matrix_EiEg.shape
 	# for i in range(0, matrix_EiEg.shape[0]): # i is the coordinate of the EfEg matrix row
 	# 	matrix_EfEg[i,0:len(matrix_EiEg.diagonal(-i+i_Ex_zero))] = matrix_EiEg.diagonal(-i+i_Ex_zero)
 		# print len(matrix_EiEg.diagonal(-i + i_Ex_zero))
@@ -980,7 +1035,7 @@ def EftoEi(matrix_EfEg, Ex_range):
 	i_Ex_zero = np.where(Ex_range > 0)[0][0]
 	if np.abs(Ex_range[i_Ex_zero]) > np.abs(Ex_range[i_Ex_zero-1]):
 		i_Ex_zero -= 1
-	print "i_Ex_zero =", i_Ex_zero, "Ex_range[i_Ex_zero] =", Ex_range[i_Ex_zero]
+	# print "i_Ex_zero =", i_Ex_zero, "Ex_range[i_Ex_zero] =", Ex_range[i_Ex_zero]
 
 	matrix_EiEg = np.zeros(matrix_EfEg.shape)
 	for i in range(0, matrix_EfEg.shape[0]-i_Ex_zero):

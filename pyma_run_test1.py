@@ -91,7 +91,11 @@ plt.subplot(2,1,2)
 plt.pcolormesh(Egamma_range_fg, Ex_range_fg, firstgen_matrix, norm=LogNorm(vmin=0.1, vmax=1e4))
 plt.show()
 
-# sys.exit(0)
+print "Egamma_range_matrix =",Egamma_range_matrix
+print "Egamma_range_fg =",Egamma_range_fg
+print "Ex_range_matrix =",Ex_range_matrix
+print "Ex_range_fg =",Ex_range_fg
+sys.exit(0)
 
 # Get shape of matrices
 matrix_shape = matrix.shape
@@ -114,10 +118,10 @@ firstgen_shape = firstgen_matrix.shape
 # Make gaussian random fluctuations
 # plt.matshow(matrix, origin='lower')
 # plt.colorbar()
-N_stat = 1000 # How many perturbed copies do we want in our ensemble?
-# print np.append(matrix_shape,N_stat)
-matrix_ensemble = np.empty(np.append(matrix_shape,N_stat))
-firstgen_ensemble = np.empty(np.append(firstgen_shape,N_stat))
+# N_stat = 1000 # How many perturbed copies do we want in our ensemble?
+# # print np.append(matrix_shape,N_stat)
+# matrix_ensemble = np.empty(np.append(matrix_shape,N_stat))
+# firstgen_ensemble = np.empty(np.append(firstgen_shape,N_stat))
 
 # For rhosigchi testing: import previously made fgvar from file
 fgvar, a_fgvar, x_fgvar, y_fgvar = read_mama('fgvar_test-20160916-Nstat1000-Nexbins100-corrected_calibration.m')

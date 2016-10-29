@@ -1,0 +1,20 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module rscit_v2 ! in 
+    interface  ! in :rscit_v2
+        subroutine iterate(fg,fgv,f,rho,f_new,rho_new,n,mask) ! in :rscit_v2:rscit_v2.f
+            double precision dimension(n,n),intent(in),depend(n,n) :: fg
+            double precision dimension(n,n),intent(in),depend(n,n) :: fgv
+            double precision dimension(n),intent(in) :: f
+            double precision dimension(n),intent(in),depend(n) :: rho
+            double precision dimension(n),intent(out),depend(n) :: f_new
+            double precision dimension(n),intent(out),depend(n) :: rho_new
+            integer, optional,intent(hide),depend(f) :: n=len(f)
+            double precision dimension(n,n),intent(in),depend(n,n) :: mask
+        end subroutine iterate
+    end interface 
+end python module rscit_v2
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
