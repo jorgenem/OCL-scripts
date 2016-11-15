@@ -54,4 +54,19 @@ Eg_min = 960
 Ex_min = 4000
 Ex_max = 7000
 
-something = rhosigchi_f2py_importvar.rhosigchi(fg_reformatted, fgv_reformatted, calib, Eg_min, Ex_min, Ex_max)
+# sys.exit(0)
+rho, T = rhosigchi_f2py_importvar.rhosigchi(fg_reformatted, fgv_reformatted, calib, Eg_min, Ex_min, Ex_max)
+
+plt.figure()
+plt.plot(rho,label='rho new')
+plt.plot(T,label='T new')
+
+import rhosigchi_f2py_origvar_pythonoutput
+rho_orig, T_orig = rhosigchi_f2py_origvar_pythonoutput.rhosigchi(fg_reformatted, calib, Eg_min, Ex_min, Ex_max)
+
+plt.plot(rho_orig,label='rho orig')
+plt.plot(T_orig,label='T orig')
+
+plt.yscale('log')
+plt.legend()
+plt.show()
