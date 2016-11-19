@@ -1,6 +1,6 @@
 
-      SUBROUTINE rhosigchi(Fg_in,sFg_in,calib,Eg_min,Ex_min,Ex_max,
-     &                     Rho_fin,Sig_fin)
+      SUBROUTINE rhosigchi(Fg_in,sFg_in,calib,Eg_min,Ex_min,
+     &                     Ex_max,Rho_fin,Sig_fin,calib_out)
       INTEGER XDIM,YDIM,MAXCH
       CHARACTER fname*8,comm*60,comment*60
       CHARACTER outfile*20,APP*4
@@ -13,14 +13,14 @@ C Stuff for the rhosig iteration
       REAL Fg(0:511,0:511),FgTeo(0:511,0:511),FgN(0:511,0:511)
       REAL Fgv(0:511,0:511),sFg(0:511,0:511),sFgN(0:511,0:511)
 CJEM  Added some variables and f2py magic lines:
-      REAL calib(4)
+      REAL calib(4), calib_out(2)
       REAL Fg_in(0:511,0:511), sFg_in(0:511,0:511)
       REAL sSum, sFi(0:511), sFf(0:511)
 CJEM  calib contains calibration coefficients in the order (aEg0, aEg1,
 CJEM  aEx0, aEx1), where Ei = aEi1*channel + aEi0
 Cf2py REAL intent(in) :: Fg_in, sFg_in, calib
       REAL Rho_fin(0:100), Sig_fin(0:100)
-Cf2py REAL intent(out) :: Rho_fin, Sig_fin
+Cf2py REAL intent(out) :: Rho_fin, Sig_fin, calib_out
       REAL sRho(0:511),sSig(0:511)
       REAL rRho(0:511),rSig(0:511),Sum,Sum2
       REAL Chi(0:100),a1,a0
@@ -124,6 +124,12 @@ C Now calculating max energy for NaI to cover resolution. Max is 800 keV
         egmax(j) = Ex + egmax(j)
       ENDDO
 
+CJEM  Addition 20161119: We need to return the final, common calibration
+CJEM  a0 and a1. They are returned as the tuple calib(2).
+CJEM  They were just calculated above, so we fill calib here
+      calib_out(1) = a0
+      calib_out(2) = a1
+      
 C Compressing (or stretching) along X and Y - axis
       DO i=0,511
          Fi(i)=0.
@@ -424,7 +430,7 @@ C Stuff for the rhosig iteration
       REAL Fg(0:511,0:511),FgTeo(0:511,0:511),FgN(0:511,0:511)
       REAL Fgv(0:511,0:511),sFg(0:511,0:511),sFgN(0:511,0:511)
 CJEM  Added some variables and f2py magic lines:
-      REAL calib(4)
+      REAL calib(4), calib_out(2)
       REAL Fg_in(0:511,0:511)
 CJEM  calib contains calibration coefficients in the order (aEg0, aEg1,
 CJEM  aEx0, aEx1), where Ei = aEi1*channel + aEi0
@@ -504,6 +510,12 @@ C Now calculating max energy for NaI to cover resolution. Max is 800 keV
         IF(igmax(j).GT.511)igmax(j)=511
         egmax(j) = Ex + egmax(j)
       ENDDO
+
+CJEM  Addition 20161119: We need to return the final, common calibration
+CJEM  a0 and a1. They are returned as the tuple calib(2).
+CJEM  They were just calculated above, so we fill calib here
+      calib_out(1) = a0
+      calib_out(2) = a1
 
 C Compressing (or stretching) along X and Y - axis
       DO i=0,511
