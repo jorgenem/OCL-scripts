@@ -1,0 +1,356 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module unfolding_test2_f2py ! in 
+    interface  ! in :unfolding_test2_f2py
+        function enel(eg,theta) ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            real :: eg
+            real :: theta
+            real :: enel
+        end function enel
+        subroutine expthres ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            integer :: istatus
+            integer :: itype
+            integer :: idest
+            real dimension(2,2,2,3) :: cal
+            integer dimension(2,2,2) :: idim
+            character dimension(2,2,8),intent(c) :: fname
+            character dimension(2,2,60),intent(c) :: comm
+            real dimension(2048) :: efftot
+            real dimension(2048) :: fwhm1
+            real dimension(2048) :: effexp
+            real dimension(2048,2048) :: r
+            integer :: rdim
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            common /state/ istatus,itype,idest,cal,idim,fname,comm
+            common /response3/ efftot,fwhm1,effexp
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+        end subroutine expthres
+        subroutine drawstars ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            real dimension(2048) :: efftot
+            real dimension(2048) :: fwhm1
+            real dimension(2048) :: effexp
+            real dimension(2048,2048) :: r
+            real :: rdim
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            common /response3/ efftot,fwhm1,effexp
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+        end subroutine drawstars
+        function fluc(f,chilow,chihigh,a1) ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            real dimension(2048) :: f
+            integer :: chilow
+            integer :: chihigh
+            real :: a1
+            real :: fluc
+        end function fluc
+        subroutine fold ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            integer :: istatus
+            integer :: itype
+            integer :: idest
+            real dimension(2,2,2,3) :: cal
+            integer dimension(2,2,2) :: idim
+            character dimension(2,2,8),intent(c) :: fname
+            character dimension(2,2,60),intent(c) :: comm
+            real dimension(2048,2048) :: r
+            integer :: rdim
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            real dimension(2,8192) :: rspec
+            integer :: maxch
+            real dimension(2,4096,2048) :: rmat
+            character dimension(2048,4),intent(c) :: app
+            integer :: xdim
+            integer :: ydim
+            common /state/ istatus,itype,idest,cal,idim,fname,comm
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+            common /sp1dim/ rspec,maxch
+            common /sp2dim/ rmat,app,xdim,ydim
+        end subroutine fold
+        subroutine foldit ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            integer :: istatus
+            integer :: itype
+            integer :: idest
+            real dimension(2,2,2,3) :: cal
+            integer dimension(2,2,2) :: idim
+            character dimension(2,2,8),intent(c) :: fname
+            character dimension(2,2,60),intent(c) :: comm
+            real dimension(2048,2048) :: r
+            integer :: rdim
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            real dimension(2048) :: efftot
+            real dimension(2048) :: fwhm1
+            real dimension(2048) :: effexp
+            real dimension(2,8192) :: rspec
+            integer :: maxch
+            real dimension(2,4096,2048) :: rmat
+            character dimension(2048,4),intent(c) :: app
+            integer :: xdim
+            integer :: ydim
+            common /state/ istatus,itype,idest,cal,idim,fname,comm
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+            common /response3/ efftot,fwhm1,effexp
+            common /sp1dim/ rspec,maxch
+            common /sp2dim/ rmat,app,xdim,ydim
+        end subroutine foldit
+        function gauss(e,ee,w) ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            real :: e
+            real :: ee
+            real :: w
+            real :: gauss
+        end function gauss
+        subroutine gausssmoothing(x,y,l1,l2,factor,w0) ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            real dimension(2048) :: x
+            real dimension(2048) :: y
+            integer :: l1
+            integer :: l2
+            real :: factor
+            real :: w0
+            real dimension(2048) :: efftot
+            real dimension(2048) :: fwhm1
+            real dimension(2048) :: effexp
+            real dimension(2048,2048) :: r
+            integer :: rdim
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            common /response3/ efftot,fwhm1,effexp
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+        end subroutine gausssmoothing
+        subroutine getresp ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            integer :: istatus
+            integer :: itype
+            integer :: idest
+            real dimension(2,2,2,3) :: cal
+            integer dimension(2,2,2) :: idim
+            character dimension(2,2,8),intent(c) :: fname
+            character dimension(2,2,60),intent(c) :: comm
+            real dimension(2048,2048) :: r
+            integer :: rdim
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            real dimension(2,4096,2048) :: rmat
+            character dimension(2048,4),intent(c) :: app
+            integer :: xdim
+            integer :: ydim
+            common /state/ istatus,itype,idest,cal,idim,fname,comm
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+            common /sp2dim/ rmat,app,xdim,ydim
+        end subroutine getresp
+        subroutine resp ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            integer :: istatus
+            integer :: itype
+            integer :: idest
+            real dimension(2,2,2,3) :: cal
+            integer dimension(2,2,2) :: idim
+            character dimension(2,2,8),intent(c) :: fname
+            character dimension(2,2,60),intent(c) :: comm
+            real dimension(2048,2048) :: r
+            integer, optional :: rdim=0
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            integer :: ir
+            real dimension(30) :: etab
+            real dimension(30) :: ftab
+            real dimension(30) :: er
+            real dimension(30) :: ese
+            real dimension(30) :: ede
+            real dimension(30) :: fe
+            real dimension(30) :: se
+            real dimension(30) :: de
+            real dimension(30) :: ann
+            real dimension(30) :: ew
+            real dimension(30) :: fw
+            character dimension(30,5),intent(c) :: ena
+            real dimension(2048) :: efftot
+            real dimension(2048) :: fwhm1
+            real dimension(2048) :: effexp
+            real dimension(2,4096,2048) :: rmat
+            character dimension(2048,4),intent(c) :: app
+            integer :: xdim
+            integer :: ydim
+            common /state/ istatus,itype,idest,cal,idim,fname,comm
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+            common /response2/ ir,etab,ftab,er,ese,ede,fe,se,de,ann,ew,fw,ena
+            common /response3/ efftot,fwhm1,effexp
+            common /sp2dim/ rmat,app,xdim,ydim
+        end subroutine resp
+        subroutine rspdetector(irsp) ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            integer :: irsp
+            real dimension(2048) :: pf
+            real dimension(2048) :: pc
+            real dimension(2048) :: ps
+            real dimension(2048) :: pd
+            real dimension(2048) :: pa
+            integer :: ir
+            real dimension(30) :: etab
+            real dimension(30) :: ftab
+            real dimension(30) :: er
+            real dimension(30) :: ese
+            real dimension(30) :: ede
+            real dimension(30) :: fe
+            real dimension(30) :: se
+            real dimension(30) :: de
+            real dimension(30) :: ann
+            real dimension(30) :: ew
+            real dimension(30) :: fw
+            character dimension(30,5),intent(c) :: ena
+            real dimension(2048) :: efftot
+            real dimension(2048) :: fwhm1
+            real dimension(2048) :: effexp
+            real dimension(2048,2048) :: r
+            integer :: rdim
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            integer :: istatus
+            integer :: itype
+            integer :: idest
+            real dimension(2,2,2,3) :: cal
+            integer dimension(2,2,2) :: idim
+            character dimension(2,2,8),intent(c) :: fname
+            character dimension(2,2,60),intent(c) :: comm
+            real dimension(2,4096,2048) :: rmat
+            character dimension(2048,4),intent(c) :: app
+            integer :: xdim
+            integer :: ydim
+            common /response4/ pf,pc,ps,pd,pa
+            common /response2/ ir,etab,ftab,er,ese,ede,fe,se,de,ann,ew,fw,ena
+            common /response3/ efftot,fwhm1,effexp
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+            common /state/ istatus,itype,idest,cal,idim,fname,comm
+            common /sp2dim/ rmat,app,xdim,ydim
+        end subroutine rspdetector
+        subroutine rspgauss ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            integer :: istatus
+            integer :: itype
+            integer :: idest
+            real dimension(2,2,2,3) :: cal
+            integer dimension(2,2,2) :: idim
+            character dimension(2,2,8),intent(c) :: fname
+            character dimension(2,2,60),intent(c) :: comm
+            real dimension(2048,2048) :: r
+            integer :: rdim
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            real dimension(2048) :: efftot
+            real dimension(2048) :: fwhm1
+            real dimension(2048) :: effexp
+            real dimension(2,4096,2048) :: rmat
+            character dimension(2048,4),intent(c) :: app
+            integer :: xdim
+            integer :: ydim
+            common /state/ istatus,itype,idest,cal,idim,fname,comm
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+            common /response3/ efftot,fwhm1,effexp
+            common /sp2dim/ rmat,app,xdim,ydim
+        end subroutine rspgauss
+        subroutine scoring(solup,lsave,lmax,score,isc,wfluc) ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            real dimension(200,7) :: solup
+            integer :: lsave
+            integer :: lmax
+            character dimension(200,4) :: score
+            integer :: isc
+            real :: wfluc
+        end subroutine scoring
+        subroutine unfold ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            integer :: istatus
+            integer :: itype
+            integer :: idest
+            real dimension(2,2,2,3) :: cal
+            integer dimension(2,2,2) :: idim
+            character dimension(2,2,8),intent(c) :: fname
+            character dimension(2,2,60),intent(c) :: comm
+            real dimension(2048,2048) :: r
+            integer :: rdim
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            real dimension(2,8192) :: rspec
+            integer :: maxch
+            real dimension(2,4096,2048) :: rmat
+            character dimension(2048,4),intent(c) :: app
+            integer :: xdim
+            integer :: ydim
+            common /state/ istatus,itype,idest,cal,idim,fname,comm
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+            common /sp1dim/ rspec,maxch
+            common /sp2dim/ rmat,app,xdim,ydim
+        end subroutine unfold
+        subroutine unfoldit(iversion) ! in :unfolding_test2_f2py:unfolding-test2-with_response_matrix_generation-20161123.f
+            integer :: iversion
+            real dimension(2048) :: pf
+            real dimension(2048) :: pc
+            real dimension(2048) :: ps
+            real dimension(2048) :: pd
+            real dimension(2048) :: pa
+            real dimension(2048) :: efftot
+            real dimension(2048) :: fwhm1
+            real dimension(2048) :: effexp
+            real dimension(2048,2048) :: r
+            integer :: rdim
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            logical :: disp
+            integer :: iyaxis
+            integer :: ldx
+            integer :: hdx
+            integer :: ldy
+            integer :: hdy
+            real :: ldz
+            real :: hdz
+            integer :: loch
+            integer :: hich
+            real :: locnt
+            real :: hicnt
+            integer :: istatus
+            integer :: itype
+            integer :: idest
+            real dimension(2,2,2,3) :: cal
+            integer dimension(2,2,2) :: idim
+            character dimension(2,2,8),intent(c) :: fname
+            character dimension(2,2,60),intent(c) :: comm
+            real dimension(2,4096,2048) :: rmat
+            character dimension(2048,4),intent(c) :: app
+            integer :: xdim
+            integer :: ydim
+            real dimension(2,8192) :: rspec
+            integer :: maxch
+            integer dimension(20) :: colormap
+            real dimension(20) :: limit
+            integer dimension(20) :: colorc
+            common /response4/ pf,pc,ps,pd,pa
+            common /response3/ efftot,fwhm1,effexp
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+            common /displa/ disp,iyaxis,ldx,hdx,ldy,hdy,ldz,hdz,loch,hich,locnt,hicnt
+            common /state/ istatus,itype,idest,cal,idim,fname,comm
+            common /sp2dim/ rmat,app,xdim,ydim
+            common /sp1dim/ rspec,maxch
+            common /colormap/ colormap,limit,colorc
+        end subroutine unfoldit
+    end interface 
+end python module unfolding_test2_f2py
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/

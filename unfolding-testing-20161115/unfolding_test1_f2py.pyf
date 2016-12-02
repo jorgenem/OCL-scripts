@@ -1,0 +1,126 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module unfolding_test1_f2py ! in 
+    interface  ! in :unfolding_test1_f2py
+        subroutine unfoldit(rawmat,calib,r,unfmat,iversion) ! in :unfolding_test1_f2py:unfolding-test1-20161115.f
+            double precision dimension(4096,2048),intent(in) :: rawmat
+            double precision dimension(2),intent(in) :: calib
+            double precision dimension(2048,2048),intent(in) :: r
+            double precision dimension(4096,2048),intent(out) :: unfmat
+            integer :: iversion
+            real dimension(2048) :: pf
+            real dimension(2048) :: pc
+            real dimension(2048) :: ps
+            real dimension(2048) :: pd
+            real dimension(2048) :: pa
+            real dimension(2048) :: efftot
+            real dimension(2048) :: fwhm1
+            real dimension(2048) :: effexp
+            integer :: rdim
+            double precision :: a0
+            double precision :: a1
+            real :: fwhm
+            real :: facfwhm
+            logical :: disp
+            integer :: iyaxis
+            integer :: ldx
+            integer :: hdx
+            integer :: ldy
+            integer :: hdy
+            real :: ldz
+            real :: hdz
+            integer :: loch
+            integer :: hich
+            real :: locnt
+            real :: hicnt
+            integer :: istatus
+            integer :: itype
+            integer :: idest
+            real dimension(2,2,2,3) :: cal
+            integer dimension(2,2,2) :: idim
+            character dimension(2,2,8),intent(c) :: fname
+            character dimension(2,2,60),intent(c) :: comm
+            character dimension(2048,4),intent(c) :: app
+            integer :: xdim
+            integer :: ydim
+            real dimension(2,8192) :: rspec
+            integer :: maxch
+            integer dimension(20) :: colormap
+            real dimension(20) :: limit
+            integer dimension(20) :: colorc
+            common /response4/ pf,pc,ps,pd,pa
+            common /response3/ efftot,fwhm1,effexp
+            common /response1/ rdim,a0,a1,fwhm,facfwhm
+            common /displa/ disp,iyaxis,ldx,hdx,ldy,hdy,ldz,hdz,loch,hich,locnt,hicnt
+            common /state/ istatus,itype,idest,cal,idim,fname,comm
+            common /sp2dim/ app,xdim,ydim
+            common /sp1dim/ rspec,maxch
+            common /colormap/ colormap,limit,colorc
+        end subroutine unfoldit
+        subroutine scoring(solup,lsave,lmax,score,isc,wfluc) ! in :unfolding_test1_f2py:unfolding-test1-20161115.f
+            real dimension(200,7) :: solup
+            integer :: lsave
+            integer :: lmax
+            character dimension(200,4) :: score
+            integer :: isc
+            real :: wfluc
+        end subroutine scoring
+        subroutine gausssmoothing(x,y,l1,l2,factor,w0) ! in :unfolding_test1_f2py:unfolding-test1-20161115.f
+            real dimension(2048) :: x
+            real dimension(2048) :: y
+            integer :: l1
+            integer :: l2
+            real :: factor
+            real :: w0
+            real dimension(2048) :: efftot
+            real dimension(2048) :: fwhm1
+            real dimension(2048) :: effexp
+            real dimension(2048,2048) :: r
+            integer :: rdim
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            common /response3/ efftot,fwhm1,effexp
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+        end subroutine gausssmoothing
+        subroutine expthres ! in :unfolding_test1_f2py:unfolding-test1-20161115.f
+            integer :: istatus
+            integer :: itype
+            integer :: idest
+            real dimension(2,2,2,3) :: cal
+            integer dimension(2,2,2) :: idim
+            character dimension(2,2,8),intent(c) :: fname
+            character dimension(2,2,60),intent(c) :: comm
+            real dimension(2048) :: efftot
+            real dimension(2048) :: fwhm1
+            real dimension(2048) :: effexp
+            real dimension(2048,2048) :: r
+            integer :: rdim
+            real :: a0
+            real :: a1
+            real :: fwhm
+            real :: facfwhm
+            common /state/ istatus,itype,idest,cal,idim,fname,comm
+            common /response3/ efftot,fwhm1,effexp
+            common /response1/ r,rdim,a0,a1,fwhm,facfwhm
+        end subroutine expthres
+        function fluc(f,chilow,chihigh,a1) ! in :unfolding_test1_f2py:unfolding-test1-20161115.f
+            real dimension(2048) :: f
+            integer :: chilow
+            integer :: chihigh
+            real :: a1
+            real :: fluc
+        end function fluc
+        function gauss(e,ee,w) ! in :unfolding_test1_f2py:unfolding-test1-20161115.f
+            real :: e
+            real :: ee
+            real :: w
+            real :: gauss
+        end function gauss
+    end interface 
+end python module unfolding_test1_f2py
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
