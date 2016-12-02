@@ -5,7 +5,7 @@ import os
 from OCL_calibration_library import *
 import ROOT as R
 import sys
-# Example file for Python function library for lining up and calibrating OCL (and other) detectors
+# Example file for Python function library for lining up and calibrating OCL (and other) detector spectra
 # Written by J{\o}rgen E. Midtb{\o}
 # Spring 2016
 # j.e.midtbo@fys.uio.no (feel free to send me questions!)

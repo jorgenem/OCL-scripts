@@ -24,7 +24,6 @@ def rebin_and_shift(array, E_range, N_final, rebin_axis=0):
 	# bins, so we are discarding some of the eventual counts in the highest energy bins. However, there is usually a margin.
 	
 	N_initial = array.shape[rebin_axis] # Initial number of counts along rebin axis
-
 	# Repeat each bin of array Nfinal times and scale to preserve counts
 	array_rebinned = array.repeat(N_final, axis=rebin_axis)/float(N_final)
 

@@ -6,7 +6,7 @@ import rhosigchi_f2py as rsc
 import numpy as np 
 import matplotlib.pyplot as plt
 
-# print rsc.__doc__
+print rsc.__doc__
 # sys.exit(0)
 
 # Setting limits on gamma and excitation energy
@@ -28,40 +28,45 @@ fgv_reformatted = fgv_reformatted.T # column-major order
 
 # Calculate main rho and T
 rho, T, calib_out = rsc.rhosigchi(fg_reformatted, fgv_reformatted, calib, Eg_min, Ex_min, Ex_max)
-print calib_out
-sys.exit(0)
+# To compare with original rhosigchi implementation, comment out the above line and uncomment below
+# rho, T, calib_out = rsc.rhosigchi_original(fg_reformatted, calib, Eg_min, Ex_min, Ex_max)
+
+print "Final calibration determined by rhosigchi: ", calib_out
+# sys.exit(0)
 
 #### CHOICE 1: Make rsc ensemble 
 # Read in ensemble of perturbed fg matrices and calculate rho and T for each:
-N_ensemble = 1
+N_ensemble = 500
 rho_var_array = np.zeros((N_ensemble,101))
 T_var_array = np.zeros((N_ensemble,101))
 for i in range(N_ensemble):
-	filename = "fg_ensemble/firstgen_ensemble-Nexbins196-%03d.m"%i
-	fg_current, tmp1, tmp2, tmp3 = pyma.read_mama(filename)
+    filename = "fg_ensemble/firstgen_ensemble-Nexbins196-%03d.m"%i
+    fg_current, tmp1, tmp2, tmp3 = pyma.read_mama(filename)
 
-	# Reformat: 
-	fg_reformatted = np.zeros((512,512))
-	fg_reformatted[0:fg.shape[0],0:fg.shape[1]] = fg_current
-	fg_reformatted = fg_reformatted.T 	
-	# Calculate current rho and T
-	rho_var_array[i,:], T_var_array[i,:] = rsc.rhosigchi(fg_reformatted, fgv_reformatted, calib, Eg_min, Ex_min, Ex_max)
+    # Reformat: 
+    fg_reformatted = np.zeros((512,512))
+    fg_reformatted[0:fg.shape[0],0:fg.shape[1]] = fg_current
+    fg_reformatted = fg_reformatted.T 	
+    # Calculate current rho and T
+    rho_var_array[i,:], T_var_array[i,:], tmp = rsc.rhosigchi(fg_reformatted, fgv_reformatted, calib, Eg_min, Ex_min, Ex_max)
+    # To compare with original rhosigchi implementation, comment out the above line and uncomment below
+    # rho_var_array[i,:], T_var_array[i,:], tmp = rsc.rhosigchi_original(fg_reformatted, calib, Eg_min, Ex_min, Ex_max)
 
-sys.exit(0)
+# sys.exit(0)
 
 # # Save ensemble arrays to file
 # np.savetxt("rsc_rho_var_array-Nensemble%03d"%N_ensemble.dat, rho_var_array)
 # np.savetxt("rsc_T_var_array-Nensemble%03d"%N_ensemble.dat, T_var_array)
 
 #### CHOICE 2: Read previously generated rsc ensemble from file
-rho_var_array = np.loadtxt("rsc_rho_var_array-Nensemble500.dat")
-T_var_array   = np.loadtxt("rsc_T_var_array-Nensemble500.dat")
-N_ensemble = rho_var_array.shape[0]
+# rho_var_array = np.loadtxt("rsc_rho_var_array-Nensemble500.dat")
+# T_var_array   = np.loadtxt("rsc_T_var_array-Nensemble500.dat")
+# N_ensemble = rho_var_array.shape[0]
 
 # == Plotting ==
 # Set up axis arrays
-E_rho = np.linspace(0,100,101)*120 - 840
-E_T   = np.linspace(0,100,101)*120 + 960
+E_rho = np.linspace(0,100,101)*calib_out[1] +calib_out[0]
+E_T   = np.linspace(0,100,101)*calib_out[1] +calib_out[0]
 
 # plt.figure(1)
 # plt.title('Ensemble perturbations: Rho')

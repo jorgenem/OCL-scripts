@@ -129,7 +129,7 @@ CJEM  a0 and a1. They are returned as the tuple calib(2).
 CJEM  They were just calculated above, so we fill calib here
       calib_out(1) = a0
       calib_out(2) = a1
-      
+
 C Compressing (or stretching) along X and Y - axis
       DO i=0,511
          Fi(i)=0.
@@ -295,49 +295,49 @@ C Statistical errors
       DO ix=jmin,jmax
 
 C The smoothing procedure of Andreas starts, fasten seatbelts...
-         DO ig=igmin,igmax(ix)
-            istart=ig-ism
-            istop=ig+ism
-            ll=0
-            IF(istart.LT.igmin)istart=igmin
-            IF(istop.GT.igmax(ix))istop=igmax(ix) !corrected 11 feb 2016
-            DO j=istart,istop
-               ll=ll+1
-               xfit(ll)=FLOAT(j)
-               yfit(ll)=tmp(j)
-            ENDDO
-            IF(ll.GT.3)THEN
-               y0=0.
-               y1=0.
-               y2=0.
-               x0=0.
-               x1=0.
-               x2=0.
-               x3=0.
-               x4=0.
-               DO j=1,ll
-                  y0=y0+yfit(j)
-                  y1=y1+yfit(j)*xfit(j)
-                  y2=y2+yfit(j)*xfit(j)**2.
-                  x0=x0+1.
-                  x1=x1+xfit(j)
-                  x2=x2+xfit(j)**2.
-                  x3=x3+xfit(j)**3.
-                  x4=x4+xfit(j)**4.
-               ENDDO
-               d0=x4*x2*x0+x3*x2*x1+x3*x2*x1-x4*x1*x1-x3*x3*x0-x2*x2*x2
-               d1=y2*x2*x0+y1*x2*x1+y0*x3*x1-y2*x1*x1-y1*x3*x0-y0*x2*x2
-               d2=y2*x2*x1+y1*x4*x0+y0*x3*x2-y2*x3*x0-y1*x2*x2-y0*x4*x1
-               d3=y2*x3*x1+y1*x3*x2+y0*x4*x2-y2*x2*x2-y1*x4*x1-y0*x3*x3
-               IF(d0.NE.0.)THEN
-                  coef(1)=d1/d0
-                  coef(2)=d2/d0
-                  coef(3)=d3/d0
-                  sFg(ig,ix)=coef(1)*FLOAT(ig)**2.+coef(2)*FLOAT(ig)+
-     & coef(3)
-               ENDIF
-            ENDIF
-         ENDDO
+CJEM20161119         DO ig=igmin,igmax(ix)
+CJEM20161119            istart=ig-ism
+CJEM20161119            istop=ig+ism
+CJEM20161119            ll=0
+CJEM20161119            IF(istart.LT.igmin)istart=igmin
+CJEM20161119            IF(istop.GT.igmax(ix))istop=igmax(ix) !corrected 11 feb 2016
+CJEM20161119            DO j=istart,istop
+CJEM20161119               ll=ll+1
+CJEM20161119               xfit(ll)=FLOAT(j)
+CJEM20161119               yfit(ll)=tmp(j)
+CJEM20161119            ENDDO
+CJEM20161119            IF(ll.GT.3)THEN
+CJEM20161119               y0=0.
+CJEM20161119               y1=0.
+CJEM20161119               y2=0.
+CJEM20161119               x0=0.
+CJEM20161119               x1=0.
+CJEM20161119               x2=0.
+CJEM20161119               x3=0.
+CJEM20161119               x4=0.
+CJEM20161119               DO j=1,ll
+CJEM20161119                  y0=y0+yfit(j)
+CJEM20161119                  y1=y1+yfit(j)*xfit(j)
+CJEM20161119                  y2=y2+yfit(j)*xfit(j)**2.
+CJEM20161119                  x0=x0+1.
+CJEM20161119                  x1=x1+xfit(j)
+CJEM20161119                  x2=x2+xfit(j)**2.
+CJEM20161119                  x3=x3+xfit(j)**3.
+CJEM20161119                  x4=x4+xfit(j)**4.
+CJEM20161119               ENDDO
+CJEM20161119               d0=x4*x2*x0+x3*x2*x1+x3*x2*x1-x4*x1*x1-x3*x3*x0-x2*x2*x2
+CJEM20161119               d1=y2*x2*x0+y1*x2*x1+y0*x3*x1-y2*x1*x1-y1*x3*x0-y0*x2*x2
+CJEM20161119               d2=y2*x2*x1+y1*x4*x0+y0*x3*x2-y2*x3*x0-y1*x2*x2-y0*x4*x1
+CJEM20161119               d3=y2*x3*x1+y1*x3*x2+y0*x4*x2-y2*x2*x2-y1*x4*x1-y0*x3*x3
+CJEM20161119               IF(d0.NE.0.)THEN
+CJEM20161119                  coef(1)=d1/d0
+CJEM20161119                  coef(2)=d2/d0
+CJEM20161119                  coef(3)=d3/d0
+CJEM20161119                  sFg(ig,ix)=coef(1)*FLOAT(ig)**2.+coef(2)*FLOAT(ig)+
+CJEM20161119     & coef(3)
+CJEM20161119               ENDIF
+CJEM20161119            ENDIF
+CJEM20161119         ENDDO
 C The first generation spectrum at high gamma energies is very uncertain
 C due to unfolding. Usually we produce a lot of high energy gamma counts
 C in the unfolding procedure. Some channel might nevertheless turn out to
@@ -347,11 +347,12 @@ C errors to their neighbouring channels. This will be taken into account in
 C the following: From gamma energies greater than Ex_min, the error in the 
 C first-generation spectrum must not change by more than +/-30% per increasing 
 C gamma bin. No errors are less than 2 counts.
-         DO ig=igmin+1,igmax(ix)
-            sFg(ig,ix)=MAX(0.7*sFg(ig-1,ix),sFg(ig,ix)) !to avoid large decrease in error
-            sFg(ig,ix)=MIN(1.3*sFg(ig-1,ix),sFg(ig,ix)) !to avoid large increase in error
-            sFg(ig,ix)=MAX(2.,sFg(ig,ix))               !to avoid too small errors
-         ENDDO
+CJEM20161119         DO ig=igmin+1,igmax(ix)
+CJEM20161119            sFg(ig,ix)=MAX(0.7*sFg(ig-1,ix),sFg(ig,ix)) !to avoid large decrease in error
+CJEM20161119            sFg(ig,ix)=MIN(1.3*sFg(ig-1,ix),sFg(ig,ix)) !to avoid large increase in error
+CJEM20161119            sFg(ig,ix)=MAX(2.,sFg(ig,ix))               !to avoid too small errors
+CJEM20161119         ENDDO
+ 
       ENDDO
 C Normalizing sFg(Eg,Ex)
       DO ix=jmin,jmax
@@ -416,7 +417,7 @@ C -----------------------------------------------------------------------------
 
 
       SUBROUTINE rhosigchi_original(Fg_in,calib,Eg_min,Ex_min,Ex_max,
-     &                     Rho_fin,Sig_fin)
+     &                     Rho_fin,Sig_fin,calib_out)
 
       INTEGER XDIM,YDIM,MAXCH
       CHARACTER fname*8,comm*60,comment*60
@@ -436,7 +437,7 @@ CJEM  calib contains calibration coefficients in the order (aEg0, aEg1,
 CJEM  aEx0, aEx1), where Ei = aEi1*channel + aEi0
 Cf2py REAL intent(in) :: Fg, calib
       REAL Rho_fin(0:100), Sig_fin(0:100)
-Cf2py REAL intent(out) :: Rho_fin, Sig_fin
+Cf2py REAL intent(out) :: Rho_fin, Sig_fin, calib_out
       REAL sRho(0:511),sSig(0:511)
       REAL rRho(0:511),rSig(0:511),Sum,Sum2
       REAL Chi(0:100),a1,a0

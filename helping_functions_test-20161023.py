@@ -2,13 +2,14 @@ from pyma_v1 import *
 
 filename = "/home/jorgenem/Dropbox/phd/184W-eksperiment/analysis_187Re/unfolding/alfna-attempted_removing_1p2MeV_Al-20160518.m"
 matrix, a, Egamma_range_matrix, Ex_range_matrix = read_mama(filename)
+# print "Ex calib: ", (Ex_range_matrix[1]-Ex_range_matrix[0]), Ex_range_matrix[0], " Eg calib: ", Egamma_range_matrix[1]-Egamma_range_matrix[0], Egamma_range_matrix[0]
 Ex_high = 7500 # keV - maximum excitation energy
 Ex_low = 4000
 Egamma_low = 1500
 Egamma_padding = 900 # We allow gamma energies somewhat higher than Ex_high because of detector uncertainty
 dE_gamma = 300 # keV - allow gamma energy to exceed excitation energy by this much, to account for experimental resolution
-N_Exbins = 100
-N=150 # Number of points in F and rho
+N_Exbins = 196
+N=65 # Number of points in F and rho -- Note to self 20161031: Should N_Exbins and N be equal? Or related in some other way?
 
 # Get first generation spectrum of exact raw matrix
 fgmat, diff_matrix, Egamma_range, Ex_range = first_generation_spectrum_test2(matrix, Egamma_range_matrix, Ex_range_matrix, N_Exbins, Ex_high, dE_gamma, N_iterations=20)
@@ -21,43 +22,76 @@ if Egamma_max > Egamma_range[-1]:
 # Take out the slice along gamma axis corresponding to these energy limits (also for variance matrix)
 fgmat_padded, Egamma_range_sliced = slice_matrix_simple(fgmat, Egamma_range, [0,Egamma_max], axis=1)
 fgvar_padded, tmp = slice_matrix_simple(fgvar, Egamma_range, [0,Egamma_max], axis=1)
-# plt.figure(0)
-# plt.pcolormesh(Egamma_range_sliced, Ex_range, fgmat_padded)
-# plt.show()
 # Add the same padding on top of Ex to get the same max energy
+# print "Ex calib: ", (Ex_range[1]-Ex_range[0]), Ex_range[0], " Eg calib: ", Egamma_range[1]-Egamma_range[0], Egamma_range[0]
+# print "Egamma_range_sliced[-1] = ", Egamma_range_sliced[-1], "Egamma_max =", Egamma_max, "Ex_range[-1] =", Ex_range[-1]
+# print "Exact N_Ex_padding_top =",Egamma_padding/(Ex_range[1]-Ex_range[0])
 N_Ex_padding_top = int(Egamma_padding/(Ex_range[1]-Ex_range[0])) # Number of additional Ex bins needed on top to reach same max energy
-# Also we need it below zero in both Ex and Egamma direction to facilitate transformation to Ef-Egamma coordinates
-N_Ex_padding_bottom = int((Egamma_padding+Ex_range[0])/(Ex_range[1]-Ex_range[0])) 								   # Number of additional Ex/Eg bins needed below zero,
-N_Eg_padding_bottom = int((Egamma_padding+Egamma_range_sliced[0])/(Egamma_range_sliced[1]-Egamma_range_sliced[0])) # taking into account that first Ex point may not be zero.
-# Apply the padding
+# print "Rounded N_Ex_padding_top =", int((Egamma_padding/(Ex_range[1]-Ex_range[0])))
 fgmat_padded = np.append(fgmat_padded, np.zeros((N_Ex_padding_top, fgmat_padded.shape[1])), axis=0) # Pad with zeros above in Ex
+fgvar_padded = np.append(fgvar_padded, np.zeros((N_Ex_padding_top, fgvar_padded.shape[1])), axis=0) # Pad with zeros above in Ex
+
+Ex_range_padded = np.linspace(Ex_range[0], Ex_range[-1]+N_Ex_padding_top*(Ex_range[1]-Ex_range[0]), fgmat_padded.shape[0])
+Eg_range_padded = np.linspace(Egamma_range_sliced[0], Egamma_range_sliced[-1], fgmat_padded.shape[1])
+# print "Ex_range_padded =",Ex_range_padded
+# print "Eg_range_padded =",Eg_range_padded
+
+# print "Array shape =", fgmat_padded.shape
+
+# === Rebin and shift all calibrations to start at zero ===
+fgmat_padded, Ex_range_padded_rebinned = rebin_and_shift(fgmat_padded, Ex_range_padded, N, rebin_axis=0) # Rebins along Ex
+fgmat_padded, Eg_range_padded_rebinned = rebin_and_shift(fgmat_padded, Eg_range_padded, N, rebin_axis=1) # Rebins along Eg
+fgvar_padded, tmp = rebin_and_shift(fgvar_padded, Ex_range_padded, N, rebin_axis=0)
+fgvar_padded, tmp = rebin_and_shift(fgvar_padded, Eg_range_padded, N, rebin_axis=1)
+# Update Ex and Eg ranges after both matrices are done rebinning: (Now these axes should have the exact same calibration, both starting at zero energy.)
+Ex_range_padded = Ex_range_padded_rebinned
+Eg_range_padded = Eg_range_padded_rebinned
+
+# print "Rebinned fgmat and fgvar shapes =", fgmat_padded.shape, fgvar_padded.shape
+# plt.matshow(fgvar_padded, origin='lower')
+# plt.show()
+# print "Rebinned Ex_range_padded =", Ex_range_padded
+# print "Rebinned Eg_range_padded =", Eg_range_padded	
+
+
+# Also we need to pad below zero in both Ex and Egamma direction to facilitate transformation to Ef-Egamma coordinates
+N_Ex_padding_bottom = int((Egamma_padding)/(Ex_range_padded[1]-Ex_range_padded[0])) 								   # Number of additional Ex/Eg bins needed below zero
+N_Eg_padding_bottom = N_Ex_padding_bottom
+# Apply the padding
 fgmat_padded = np.append(np.zeros((N_Ex_padding_bottom, fgmat_padded.shape[1])), fgmat_padded, axis=0) # Pad with zeros below in Ex
 fgmat_padded = np.append(np.zeros((fgmat_padded.shape[0], N_Eg_padding_bottom)), fgmat_padded, axis=1) # Pad with zeros below in Eg
 # Same for fgvar
-fgvar_padded = np.append(fgvar_padded, np.zeros((N_Ex_padding_top, fgvar_padded.shape[1])), axis=0) # Pad with zeros above in Ex
 fgvar_padded = np.append(np.zeros((N_Ex_padding_bottom, fgvar_padded.shape[1])), fgvar_padded, axis=0) # Pad with zeros below in Ex
 fgvar_padded = np.append(np.zeros((fgvar_padded.shape[0], N_Eg_padding_bottom)), fgvar_padded, axis=1) # Pad with zeros below in Eg
 
-# Make Ex and Eg range arrays including padding
-# Note 20161029: I added this to be able to use rebin_and_shift() instead of just rebin(), and thus get calibrations right. 
-# However, I realize that since rebin_and_shift does not support below-zero energy range, it will not work just like this.
-# I think it can be done by reordering the above, and first rebinning on the non-padded (possibly only padded to positive Ex) 
-# array and then pad (it should be even easier this way, since calibration is then automatically the same for both axes).
-Ex_range_padded = np.linspace(Ex_range[0]-N_Ex_padding_bottom*(Ex_range[1]-Ex_range[0]), Ex_range[-1]+N_Ex_padding_top*(Ex_range[1]-Ex_range[0]), fgmat_padded.shape[0])
-Eg_range_padded = np.linspace(Egamma_range_sliced[0]-N_Eg_padding_bottom*(Egamma_range_sliced[1]-Egamma_range_sliced[0]), Egamma_range_sliced[-1], fgmat_padded.shape[1])
+N = N + N_Ex_padding_bottom # Update N to include number of padded bins below zero
+# Make Ex and Eg range arrays including padding, call them squared. These will be used for the following.
+Ex_range_padded = np.linspace(-N_Ex_padding_bottom*(Ex_range_padded[1]-Ex_range_padded[0]), Ex_range_padded[-1], N)
+Eg_range_padded = np.linspace(-N_Eg_padding_bottom*(Eg_range_padded[1]-Eg_range_padded[0]), Eg_range_padded[-1], N)
 
-print "Ex_range_padded =",Ex_range_padded
-print "Eg_range_padded =",Eg_range_padded
-sys.exit(0)
+# print "Rebinned Ex_range_padded =", Ex_range_padded
+# print "Rebinned Eg_range_padded =", Eg_range_padded	
+# plt.matshow(fgvar_padded, origin='lower')
+# plt.show()
 
-# Rebin to NxN
-fg_EiEg = rebin(rebin(fgmat_padded, N, rebin_axis=0), N, rebin_axis=1)
-fgv_EiEg = rebin(rebin(fgvar_padded, N, rebin_axis=0), N, rebin_axis=1)
-# Make the corresponding axis arrays of length N
-Ex_range_squared = np.linspace(Ex_range[0]-Egamma_padding, Ex_range[-1]+Egamma_padding, N)
-Eg_range_squared = np.linspace(Egamma_range_sliced[0]-Egamma_padding, Egamma_range_sliced[-1], N)
+# Rename the finished versions of matrices and range arrays to be used below:
+fg_EiEg = fgmat_padded
+fgv_EiEg = fgvar_padded
+Ex_range_squared = Ex_range_padded
+Eg_range_squared = Eg_range_padded
 
-# In case we want to apply some more restricting energy cuts than in the FG spectrum, they are applied here using a 2D meshgrid of energy ranges:
+
+# sys.exit(0)
+
+
+# # Rebin to NxN
+# fg_EiEg = rebin(rebin(fgmat_padded, N, rebin_axis=0), N, rebin_axis=1)
+# fgv_EiEg = rebin(rebin(fgvar_padded, N, rebin_axis=0), N, rebin_axis=1)
+# # Make the corresponding axis arrays of length N
+# Ex_range_squared = np.linspace(Ex_range[0]-Egamma_padding, Ex_range[-1]+Egamma_padding, N)
+# Eg_range_squared = np.linspace(Egamma_range_sliced[0]-Egamma_padding, Egamma_range_sliced[-1], N)
+
+# In case we want to apply some more restricting energy cuts than in the FG spectrum, they are applied here using a 2D mask of energy ranges:
 Egammamesh, Exmesh = np.meshgrid(Eg_range_squared, Ex_range_squared)
 # Create a binary mask defining the area of the fg matrix that we are restricting to
 mask_EiEg = np.where(np.logical_and(Exmesh > Ex_low, np.logical_and(Exmesh < Ex_high, Egammamesh > Egamma_low)), 1, 0) 
@@ -119,7 +153,7 @@ for iteration in range(20):
 		i_Ei_max -= 1
 	
 	# Fill the arrays:
-	for i_Ei in range(i_Ei_min,i_Ei_max):
+	for i_Ei in range(i_Ei_min,i_Ei_max+1):
 		s[i_Ei] = ( F[i_Eg_min:i_Ei] * np.flipud(rho[0:i_Ei-i_Eg_min]) ).sum()
 		b[i_Ei] = ( div0( F[i_Eg_min:i_Ei] * np.flipud(rho[0:i_Ei-i_Eg_min]) * fg_EiEg[i_Ei,i_Eg_min:i_Ei], np.power(fgv_EiEg[i_Ei,i_Eg_min:i_Ei],2) ) ).sum()
 		a[i_Ei] = ( np.power( div0( F[i_Eg_min:i_Ei] * np.flipud(rho[0:i_Ei-i_Eg_min]), fgv_EiEg[i_Ei,i_Eg_min:i_Ei]), 2) ).sum()

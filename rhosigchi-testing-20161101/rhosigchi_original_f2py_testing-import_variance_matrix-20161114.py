@@ -13,6 +13,10 @@ fgv, tmp1, tmp2, tmp3 = pyma.read_mama('fgvar-jem-20161011-Nexbins196-Nstat500.m
 # print Ex_range, Eg_range
 import matplotlib.pyplot as plt
 
+Eg_min = 1000
+Ex_min = 4000
+Ex_max = 8000
+
 
 # # Rebinning matrices to get right format, should be 120 keV bins
 # N = 65
@@ -49,10 +53,7 @@ fgv_reformatted = fgv_reformatted.T # column-major order
 
 
 
-# Setting limits on gamma and excitation energy
-Eg_min = 960
-Ex_min = 4000
-Ex_max = 7000
+
 
 # sys.exit(0)
 rho, T = rhosigchi_f2py_importvar.rhosigchi(fg_reformatted, fgv_reformatted, calib, Eg_min, Ex_min, Ex_max)

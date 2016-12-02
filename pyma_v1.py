@@ -14,11 +14,14 @@ def read_mama(filename):
 	datafile = open(filename, 'r')
 	calibration_line = datafile.readlines()[6].split()
 	a = [float(calibration_line[2][:-1]), float(calibration_line[3][:-1]), float(calibration_line[5][:-1]), float(calibration_line[6][:-1])]
+	# TODO: INSERT CORRECTION FROM CENTER-BIN TO LOWER EDGE CALIBRATION HERE.
+	# MAKE SURE TO CHECK rebin_and_shift() WHICH MIGHT NOT LIKE NEGATIVE SHIFT COEFF.
+	# (alternatively consider using center-bin throughout, but then need to correct when plotting.)
 	Nx = len(matrix[0,:])
 	Ny = len(matrix[:,0])
 	# print Nx, Ny
-	x_array = np.linspace(a[0], a[0]+a[1]*(Nx), Nx+1)
-	y_array = np.linspace(a[2], a[2]+a[3]*(Ny), Ny+1)
+	x_array = np.linspace(a[0], a[0]+a[1]*(Nx), Nx+1) # BIG TODO: This is probably center-bin calibration, 
+	y_array = np.linspace(a[2], a[2]+a[3]*(Ny), Ny+1) # and should be shifted down by half a bin?
 	return matrix, a, x_array, y_array # TODO: Change this so it returns the y array first - this is axis 0
 
 def write_mama(matrix, filename, Egamma_range, Ex_range):
@@ -149,7 +152,7 @@ def first_generation_spectrum_test2(matrix, Egamma_range, Ex_range_mat, N_Exbins
 
 	# Make arrays of Ex and Egamma axis values
 	Ex_range = np.linspace(by, Ex_max + dE_gamma, N_Exbins)
-	Egamma_range = np.linspace(0,Nx,Nx)*ax + bx # Range of Egamma values
+	Egamma_range = np.linspace(0,Nx-1,Nx)*ax + bx # Range of Egamma values
 	
 	# Compress matrix along Ex
 	#matrix_ex_compressed = matrix[0:int(N_Exbins*grouping),:].reshape(N_Exbins, grouping, Nx).sum(axis=1)
@@ -439,6 +442,10 @@ def rebin_and_shift(array, E_range, N_final, rebin_axis=0):
 	# corresponding to the counts array, in order to be able to change the calibration. What it does is transform the
 	# coordinates such that the starting value of the rebinned axis is zero energy. This is done by shifting all
 	# bins, so we are discarding some of the eventual counts in the highest energy bins. However, there is usually a margin.
+
+	if isinstance(array, tuple): # Check if input array is actually a tuple, which may happen if rebin_and_shift() is called several times nested for different axes.
+		array = array[0]
+
 	
 	N_initial = array.shape[rebin_axis] # Initial number of counts along rebin axis
 
@@ -1055,13 +1062,17 @@ def slice_matrix_simple(matrix, E_range, E_limits, axis):
 	Elow = E_limits[0]
 	Ehigh = E_limits[1]
 	index_Elow = np.where(E_range > Elow)[0][0]
+	# print "E_range[index_Elow] first try =",E_range[index_Elow]
 	if np.abs(Elow - E_range[index_Elow]) > np.abs(Elow - E_range[index_Elow-1]):
 		index_Elow -= 1
+	# print "E_range[index_Elow] second try =",E_range[index_Elow]
 	index_Ehigh = np.where(E_range > Ehigh)[0][0]
+	# print "E_range[index_Ehigh] first try =",E_range[index_Ehigh]
 	if np.abs(Ehigh - E_range[index_Ehigh]) > np.abs(Ehigh - E_range[index_Ehigh-1]):
 		index_Ehigh -= 1
+	# print "E_range[index_Ehigh] second try =",E_range[index_Ehigh]
 	# Return subslice of matrix along with corresponding subslice of axis range array E_range
-	return np.split(matrix, [index_Elow, index_Ehigh], axis=axis)[1], E_range[index_Elow:index_Ehigh]
+	return np.split(matrix, [index_Elow, index_Ehigh+1], axis=axis)[1], E_range[index_Elow:index_Ehigh+1] # The +1 index is needed to actually include the final element that we want.
 
 def slice_matrix(matrix, E_ranges, E_limits, N_finals):
 	###########################################################
