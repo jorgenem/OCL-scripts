@@ -199,6 +199,50 @@ def calibrate_2points(peaks_file1, peaks_file2, target1, target2, reaction1, rea
 	# This function takes two peaks and two matching Qkinz calculated levels, and outputs
 	# gains and shifts. 
 
+	"""
+    Input
+
+    peaks_file1 :       int,
+                        Peakfinder csv file format:
+                        First line comments, second line detector strip info (bxfx), 
+                        third line number output, then alternating 2nd and 3rd line format:
+                        #name   peak2d_x    peak2d_y    proj_x  proj_y
+                                b(2d)=0 f(2d)=0 b(proj)=0   f(proj)=0
+                                11494.2 4385.09 11494.2 4385.09
+                                b(2d)=0 f(2d)=1 b(proj)=0   f(proj)=1
+                                11453.9 4490    11453.9 4490 
+                            ...
+    peaks_file2 :       int,
+                        see above
+    target1 :           string,
+                        the chemical name of the target formatted as ex. "192Os" or "60Ni"
+    target2 :           string,
+                        see above
+    reaction1 :         string,
+                        can be one of: "Protons", "Deutrons", "Tritons", "Alphas" 
+                        (for proton, deuteron, triton, alpha)
+    reaction2 :         string,
+                        see above
+    excitation_number1: int, 
+                        used as index to read out data from the Qkinz files
+                        set to zero for the ground state, 1 for first excited and so on
+    excitation_number2: int, 
+                        see above
+    g0_front :          float, optional
+                        default value corrects for the standard gain set in the "plain" 
+                        gainshift file for the dE detector
+    g0_back :           float, optional
+                        default value corrects for the standard gain set in the "plain" 
+                        gainshift file for the E detector
+
+    
+    Returns
+                        Prints the calculatet gains and shifts
+
+	"""
+
+
+
 	# Read measured peak values from files
 	infile1 = open(peaks_file1, 'r')
 	infile2 = open(peaks_file2, 'r')
