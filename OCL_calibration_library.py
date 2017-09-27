@@ -211,11 +211,11 @@ def calibrate_2points(peaks_file1, peaks_file2, target1, target2, reaction1, rea
 	dE2_m_list = []
 	for i in range(64):
 		words1 = lines1[2*i+2].split()
-		E1_m_list.append(float(words1[1]))
-		dE1_m_list.append(float(words1[2]))
+		E1_m_list.append(float(words1[0]))
+		dE1_m_list.append(float(words1[1]))
 		words2 = lines2[2*i+2].split()
-		E2_m_list.append(float(words2[1]))
-		dE2_m_list.append(float(words2[2]))
+		E2_m_list.append(float(words2[0]))
+		dE2_m_list.append(float(words2[1]))
 
 
 	# Get the relevant physical values from Qkinz:
