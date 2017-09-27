@@ -118,18 +118,41 @@ def read_qkinz_single(isotope, reaction):
 	# ** THIS VERSION: Read only the relevant reaction entry (p, d, t) **
 
 	# Function which reads data from Qkinz. 
-	# The argument "isotope" should be a string specifying the target, e.g. "184W".
-	# The argument "reaction" should be one of the following strings: "p", "d", "t" (for proton, deuteron or triton)
 	# Qkinz is available at http://github.com/oslocyclotronlab
 	# The Qkinz output should be organized as a set of files named as follows:
 	# <isotope>_stripX.txt
-	# e.g. 184W_strip0.txt, 184W_strip1.txt, ..., 184W_strip7.txt.
-	# The data is returned as nested lists in the following format:
-	# [strip1, strip2, ..., strip7],
-	# where
-	# strip1 = [level1, level2, ..., levelN]
-	# where again 
-	# level1 = [Excitation energy (keV),     Energy dE-detector (keV),     dEnergy dE-detector (keV),     Energy E-detector (keV),    dEnergy dE-detector (keV),     Total particle energy (keV)]
+	# e.g. "184W_strip0.txt", "184W_strip1.txt", ..., "184W_strip7.txt".
+	# stored in the folder "qkinz"
+	
+"""
+    Input
+
+    isotope :           string,
+                        the chemical name of the target formatted as ex. "192Os" or "60Ni"
+
+    reaction :          string,
+                        can be one of: "p", "d", "t" 
+                        (for proton, deuteron, triton)
+
+
+    Returns    
+
+    data_list :         list,
+                        a nested list containing the data read from the Qkinz files. 
+                        The list is organized as:
+                        [strip1, strip2, ..., strip7],
+                        where,
+                        strip1 = [level1, level2, ..., levelN]
+                        where again, 
+                        level1 = [Excitation energy (keV),     Energy dE-detector (keV),     dEnergy dE-detector (keV),     Energy E-detector (keV),    dEnergy dE-detector (keV),     Total particle energy (keV)]
+
+                        Access the list with the keys:
+                        list[strip][excitation_number][energy col.]
+                        so accessing second strip(file name ..f1), ground state and "Energy E-detector (keV)":
+                        list[1][0][3]
+
+    """
+
 
 
 	list = [] # Allocate nested list to include all data
