@@ -69,14 +69,16 @@ def shift_and_smooth2D(array, E_range, FWHM, p, shift, smoothing=True):
         indices_shifted = np.linspace(0,len(array)-i_shift-1,len(array)-i_shift).astype(int) # Index array for shifted array
 
     # Transform energy array from edge to middle-bin
-    E_range_middlebin = (E_range[0:N]+E_range[1:N+1])/2
+    # E_range_middlebin = (E_range[0:N]+E_range[1:N+1])/2
 
     if smoothing:
         matrix = np.zeros((N,N))
         indices_original = indices_original[np.where(FWHM[indices_original]>0)] # Filter out channels with zero width, we don't want those
         for i in indices_original: # i is the energy channel in unshifted array
             try:
-                matrix[i] = array[i]*p[i]*norm.pdf(E_range_middlebin, loc=Eg_range_middlebin[indices_shifted[i]], scale=FWHM[i]/2.355) \
+                # matrix[i] = array[i]*p[i]*norm.pdf(E_range_middlebin, loc=Eg_range_middlebin[indices_shifted[i]], scale=FWHM[i]/2.355) \
+                # Update 20171110: No need to specify middlebin as read_mama already returns middle-bin arrays
+                matrix[i] = array[i]*p[i]*norm.pdf(E_range, loc=Eg_range[indices_shifted[i]], scale=FWHM[i]/2.355) \
                 * a1 # Multiplying by bin width to preserve number of counts
                             # TODO: Figure out how FWHM relates to bin width
             except IndexError:
@@ -98,14 +100,21 @@ def shift_and_smooth2D(array, E_range, FWHM, p, shift, smoothing=True):
 
     return array_out
 
+
+
+
 # == Start main program ==    
 
 
-unfolded, calib, Eg_range, Ex_range = pyma.read_mama('pyma_unfolded_test-20161129.m')
+# unfolded, calib, Eg_range, Ex_range = pyma.read_mama('pyma_unfolded_test-20161129.m')
+unfolded, calib, Eg_range, Ex_range = pyma.read_mama('pyma_unfolded_test-fn-20161205.m')
+
 N = unfolded.shape[1]
 print "N = {}".format(N)
 
 raw, calib_raw, Eg_raw, Ex_raw = pyma.read_mama('alfna-20160518.m')
+# raw, calib_raw, Eg_raw, Ex_raw = pyma.read_mama('alfna-filled_negative-20161205.m')
+# Note 20171110: read_mama returns middle-bin energy arrays
 raw = raw[0:250, 0:1000] # TODO: Should probably mask this to remove noise
 print "raw.shape = {}, unfolded.shape = {}".format(raw.shape, unfolded.shape)
 
@@ -123,8 +132,8 @@ raw_array = raw[i_Eg,:]
 
 plt.figure(1)
 plt.subplot(2,1,1)
-plt.step((Eg_range[0:N]+Eg_range[1:N+1])/2, orig, label='Iterated')
-plt.step((Eg_range[0:N]+Eg_range[1:N+1])/2, raw_array, label='Raw')
+plt.step(Eg_range, orig, label='Iterated', where='mid')
+plt.step(Eg_range, raw_array, label='Raw', where='mid')
 plt.legend()
 # orig = np.zeros(N)
 # orig[i_from_E(5000,Eg_range)] = 400
@@ -137,7 +146,7 @@ pc = resp[:,4]
 ps = resp[:,5]
 pd = resp[:,6]
 pa = resp[:,7]
-Eg_range_middlebin = (Eg_range[0:N]+Eg_range[1:N+1])/2
+# Eg_range_middlebin = (Eg_range[0:N]+Eg_range[1:N+1])/2
 # fe = orig * np.append(0, pf[0:N-1])
 fe = shift_and_smooth2D(orig, Eg_range, 0.5*FWHM, pf, shift=0, smoothing=True)
 se = shift_and_smooth2D(orig, Eg_range, 0.5*FWHM, ps, shift=511, smoothing=True)
@@ -159,12 +168,12 @@ U = pyma.div0(u, np.append(0, eff)[0:N])
 
 
 plt.subplot(2,1,2)
-plt.plot(Eg_range_middlebin, v, label='v (=p*f+se+de+a)')
-plt.step((Eg_range[0:N]+Eg_range[1:N+1])/2, raw_array, label='Raw')
-plt.step((Eg_range[0:N]+Eg_range[1:N+1])/2, c, label='Compton (r-v)')
-plt.step((Eg_range[0:N]+Eg_range[1:N+1])/2, c_s, label='Compton smoothed')
-plt.step((Eg_range[0:N]+Eg_range[1:N+1])/2, u, label='Unfolded')
-# plt.step((Eg_range[0:N]+Eg_range[1:N+1])/2, U, label='Unfolded, eff corrected')
+plt.plot(Eg_range, v, label='v (=p*f+se+de+a)')
+plt.step(Eg_range, raw_array, label='Raw', where='mid')
+plt.step(Eg_range, c, label='Compton (r-v)', where='mid')
+plt.step(Eg_range, c_s, label='Compton smoothed', where='mid')
+plt.step(Eg_range, u, label='Unfolded', where='mid')
+# plt.step(Eg_range, U, label='Unfolded, eff corrected', where='mid')
 plt.legend()
 plt.show()
 
@@ -179,8 +188,8 @@ sys.exit(0)
 
 
 plt.figure()
-plt.step(Eg_range_middlebin, orig,label='orig')
-plt.step(Eg_range_middlebin, smoothed,label='modified')
+plt.step(Eg_range, orig,label='orig', where='mid')
+plt.step(Eg_range, smoothed,label='modified', where='mid')
 plt.legend()
 plt.show()
 
