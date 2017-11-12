@@ -20,8 +20,11 @@ def read_mama(filename):
 	Nx = len(matrix[0,:])
 	Ny = len(matrix[:,0])
 	# print Nx, Ny
-	x_array = np.linspace(a[0], a[0]+a[1]*(Nx), Nx+1) # BIG TODO: This is probably center-bin calibration, 
-	y_array = np.linspace(a[2], a[2]+a[3]*(Ny), Ny+1) # and should be shifted down by half a bin?
+	x_array = np.linspace(a[0], a[0]+a[1]*(Nx), Nx) # BIG TODO: This is probably center-bin calibration, 
+	y_array = np.linspace(a[2], a[2]+a[3]*(Ny), Ny) # and should be shifted down by half a bin?
+																									# Update 20171024: Started changing everything to lower bin edge,
+																									# but started to hesitate. For now I'm inclined to keep it as
+																									# center-bin everywhere. 
 	return matrix, a, x_array, y_array # TODO: Change this so it returns the y array first - this is axis 0
 
 def write_mama(matrix, filename, Egamma_range, Ex_range):

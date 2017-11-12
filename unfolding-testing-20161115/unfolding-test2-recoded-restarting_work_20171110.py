@@ -97,9 +97,11 @@ def shift_and_smooth2D(array, E_range, FWHM, p, shift, smoothing=True):
 # Import raw mama matrix
 # raw, calib, Eg_range, Ex_range = pyma.read_mama('alfna-filled_negative-20161205.m')
 # filename_alfna = 'alfna-20160518.m'
+filename_responsemat = 'response-20161122.m'
 filename_alfna = 'alfna28si.m'
+filename_responsemat = 'response-si28-20171112.m'
 raw, calib, Eg_range, Ex_range = pyma.read_mama(filename_alfna)
-R, tmp1, tmp2, tmp3 = pyma.read_mama('response-20161122.m')
+R, tmp1, tmp2, tmp3 = pyma.read_mama(filename_responsemat)
 
 # Test 20161205: Remove all negative counts in raw, see what happens. Update: Didn't help, unfolded still runs negative.
 raw[raw<0] = 0
