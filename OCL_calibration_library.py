@@ -118,18 +118,41 @@ def read_qkinz_single(isotope, reaction):
 	# ** THIS VERSION: Read only the relevant reaction entry (p, d, t) **
 
 	# Function which reads data from Qkinz. 
-	# The argument "isotope" should be a string specifying the target, e.g. "184W".
-	# The argument "reaction" should be one of the following strings: "p", "d", "t" (for proton, deuteron or triton)
 	# Qkinz is available at http://github.com/oslocyclotronlab
 	# The Qkinz output should be organized as a set of files named as follows:
 	# <isotope>_stripX.txt
-	# e.g. 184W_strip0.txt, 184W_strip1.txt, ..., 184W_strip7.txt.
-	# The data is returned as nested lists in the following format:
-	# [strip1, strip2, ..., strip7],
-	# where
-	# strip1 = [level1, level2, ..., levelN]
-	# where again 
-	# level1 = [Excitation energy (keV),     Energy dE-detector (keV),     dEnergy dE-detector (keV),     Energy E-detector (keV),    dEnergy dE-detector (keV),     Total particle energy (keV)]
+	# e.g. "184W_strip0.txt", "184W_strip1.txt", ..., "184W_strip7.txt".
+	# stored in the folder "qkinz"
+	
+"""
+    Input
+
+    isotope :           string,
+                        the chemical name of the target formatted as ex. "192Os" or "60Ni"
+
+    reaction :          string,
+                        can be one of: "p", "d", "t" 
+                        (for proton, deuteron, triton)
+
+
+    Returns    
+
+    data_list :         list,
+                        a nested list containing the data read from the Qkinz files. 
+                        The list is organized as:
+                        [strip1, strip2, ..., strip7],
+                        where,
+                        strip1 = [level1, level2, ..., levelN]
+                        where again, 
+                        level1 = [Excitation energy (keV),     Energy dE-detector (keV),     dEnergy dE-detector (keV),     Energy E-detector (keV),    dEnergy dE-detector (keV),     Total particle energy (keV)]
+
+                        Access the list with the keys:
+                        list[strip][excitation_number][energy col.]
+                        so accessing second strip(file name ..f1), ground state and "Energy E-detector (keV)":
+                        list[1][0][3]
+
+    """
+
 
 
 	list = [] # Allocate nested list to include all data
@@ -199,6 +222,50 @@ def calibrate_2points(peaks_file1, peaks_file2, target1, target2, reaction1, rea
 	# This function takes two peaks and two matching Qkinz calculated levels, and outputs
 	# gains and shifts. 
 
+	"""
+    Input
+
+    peaks_file1 :       int,
+                        Peakfinder csv file format:
+                        First line comments, second line detector strip info (bxfx), 
+                        third line number output, then alternating 2nd and 3rd line format:
+                        #name   peak2d_x    peak2d_y    proj_x  proj_y
+                                b(2d)=0 f(2d)=0 b(proj)=0   f(proj)=0
+                                11494.2 4385.09 11494.2 4385.09
+                                b(2d)=0 f(2d)=1 b(proj)=0   f(proj)=1
+                                11453.9 4490    11453.9 4490 
+                            ...
+    peaks_file2 :       int,
+                        see above
+    target1 :           string,
+                        the chemical name of the target formatted as ex. "192Os" or "60Ni"
+    target2 :           string,
+                        see above
+    reaction1 :         string,
+                        can be one of: "Protons", "Deutrons", "Tritons", "Alphas" 
+                        (for proton, deuteron, triton, alpha)
+    reaction2 :         string,
+                        see above
+    excitation_number1: int, 
+                        used as index to read out data from the Qkinz files
+                        set to zero for the ground state, 1 for first excited and so on
+    excitation_number2: int, 
+                        see above
+    g0_front :          float, optional
+                        default value corrects for the standard gain set in the "plain" 
+                        gainshift file for the dE detector
+    g0_back :           float, optional
+                        default value corrects for the standard gain set in the "plain" 
+                        gainshift file for the E detector
+
+    
+    Returns
+                        Prints the calculatet gains and shifts
+
+	"""
+
+
+
 	# Read measured peak values from files
 	infile1 = open(peaks_file1, 'r')
 	infile2 = open(peaks_file2, 'r')
@@ -211,11 +278,11 @@ def calibrate_2points(peaks_file1, peaks_file2, target1, target2, reaction1, rea
 	dE2_m_list = []
 	for i in range(64):
 		words1 = lines1[2*i+2].split()
-		E1_m_list.append(float(words1[1]))
-		dE1_m_list.append(float(words1[2]))
+		E1_m_list.append(float(words1[0]))
+		dE1_m_list.append(float(words1[1]))
 		words2 = lines2[2*i+2].split()
-		E2_m_list.append(float(words2[1]))
-		dE2_m_list.append(float(words2[2]))
+		E2_m_list.append(float(words2[0]))
+		dE2_m_list.append(float(words2[1]))
 
 
 	# Get the relevant physical values from Qkinz:
